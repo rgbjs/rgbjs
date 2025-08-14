@@ -1,0 +1,685 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>rgbjs - JavaScript RGB Protocol Library</title>
+    <meta
+      name="description"
+      content="The first production-ready JavaScript implementation of the RGB protocol. Run RGB contracts in browsers, PWAs, and mobile apps."
+    />
+
+    <!-- Open Graph -->
+    <meta
+      property="og:title"
+      content="rgbjs - JavaScript RGB Protocol Library"
+    />
+    <meta
+      property="og:description"
+      content="Production-ready JavaScript implementation of the RGB protocol for browsers, PWAs, and mobile apps."
+    />
+    <meta property="og:type" content="website" />
+
+    <style>
+      :root {
+        --primary: #667eea;
+        --primary-dark: #5a6fd8;
+        --secondary: #764ba2;
+        --accent: #f093fb;
+        --success: #4caf50;
+        --warning: #ff9800;
+        --error: #f44336;
+        --dark: #1a1a2e;
+        --darker: #16213e;
+        --light: #f8f9fa;
+        --white: #ffffff;
+        --gray: #6c757d;
+        --border: #e9ecef;
+        --gradient: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--secondary) 100%
+        );
+        --gradient-accent: linear-gradient(
+          135deg,
+          var(--accent) 0%,
+          var(--primary) 100%
+        );
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+          Roboto, sans-serif;
+        line-height: 1.6;
+        color: var(--dark);
+        background: var(--white);
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* Header */
+      .header {
+        background: var(--gradient);
+        color: white;
+        padding: 2rem 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
+      }
+
+      .header-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+      }
+
+      .logo {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, #fff, var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .tagline {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+        font-weight: 300;
+      }
+
+      .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn-primary {
+        background: var(--white);
+        color: var(--primary);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+      }
+
+      .btn-secondary:hover {
+        background: white;
+        color: var(--primary);
+      }
+
+      /* Hero Section */
+      .hero {
+        padding: 5rem 0;
+        background: var(--light);
+        text-align: center;
+      }
+
+      .hero h2 {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+      }
+
+      .hero p {
+        font-size: 1.2rem;
+        color: var(--gray);
+        max-width: 800px;
+        margin: 0 auto 3rem;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+      }
+
+      .feature-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        border: 1px solid var(--border);
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .feature-card h3 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        color: var(--dark);
+      }
+
+      .feature-card p {
+        color: var(--gray);
+        line-height: 1.6;
+      }
+
+      /* Code Section */
+      .code-section {
+        padding: 5rem 0;
+        background: var(--darker);
+        color: white;
+      }
+
+      .code-section h2 {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+      }
+
+      .code-example {
+        background: var(--dark);
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 2rem 0;
+        border: 1px solid #333;
+        position: relative;
+      }
+
+      .code-example::before {
+        content: 'JavaScript';
+        position: absolute;
+        top: -12px;
+        left: 20px;
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .code-example pre {
+        color: #e2e8f0;
+        font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+        line-height: 1.5;
+        overflow-x: auto;
+      }
+
+      .code-example .highlight {
+        color: var(--accent);
+      }
+
+      /* Stats Section */
+      .stats {
+        padding: 4rem 0;
+        background: var(--gradient-accent);
+        color: white;
+        text-align: center;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+      }
+
+      .stat-item h3 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+      }
+
+      .stat-item p {
+        opacity: 0.9;
+        font-size: 1.1rem;
+      }
+
+      /* Use Cases */
+      .use-cases {
+        padding: 5rem 0;
+        background: white;
+      }
+
+      .use-cases h2 {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+        color: var(--dark);
+      }
+
+      .use-cases-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+      }
+
+      .use-case {
+        background: var(--light);
+        padding: 2rem;
+        border-radius: 16px;
+        border-left: 4px solid var(--primary);
+      }
+
+      .use-case h3 {
+        color: var(--primary);
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+      }
+
+      .use-case p {
+        color: var(--gray);
+        line-height: 1.6;
+      }
+
+      /* Footer */
+      .footer {
+        background: var(--dark);
+        color: white;
+        padding: 3rem 0;
+        text-align: center;
+      }
+
+      .footer-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .footer-section h3 {
+        color: var(--primary);
+        margin-bottom: 1rem;
+      }
+
+      .footer-section a {
+        color: #ccc;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 0.5rem;
+        transition: color 0.3s ease;
+      }
+
+      .footer-section a:hover {
+        color: var(--primary);
+      }
+
+      .footer-bottom {
+        border-top: 1px solid #333;
+        padding-top: 2rem;
+        color: #999;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 1rem;
+        }
+
+        .logo {
+          font-size: 2rem;
+        }
+
+        .tagline {
+          font-size: 1.2rem;
+        }
+
+        .hero h2 {
+          font-size: 2rem;
+        }
+
+        .cta-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .btn {
+          width: 100%;
+          max-width: 300px;
+          justify-content: center;
+        }
+      }
+
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-in {
+        animation: fadeInUp 0.6s ease-out;
+      }
+
+      .fade-in-delay-1 {
+        animation: fadeInUp 0.6s ease-out 0.2s both;
+      }
+
+      .fade-in-delay-2 {
+        animation: fadeInUp 0.6s ease-out 0.4s both;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <div class="logo fade-in">rgbjs</div>
+          <p class="tagline fade-in-delay-1">
+            The first production-ready JavaScript implementation of the RGB
+            protocol
+          </p>
+          <div class="cta-buttons fade-in-delay-2">
+            <a href="#get-started" class="btn btn-primary"> 🚀 Get Started </a>
+            <a href="https://github.com/rgbjs/rgbjs" class="btn btn-secondary">
+              📖 View on GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <h2>Run RGB Contracts Anywhere JavaScript Runs</h2>
+        <p>
+          rgbjs brings the power of RGB protocol to browsers, Progressive Web
+          Apps, and mobile applications. Create, manage, and interact with RGB20
+          assets using pure JavaScript.
+        </p>
+
+        <div class="features-grid">
+          <div class="feature-card fade-in">
+            <div class="feature-icon">🌐</div>
+            <h3>Browser Native</h3>
+            <p>
+              No compilation needed. Run directly in modern browsers with full
+              RGB protocol support.
+            </p>
+          </div>
+
+          <div class="feature-card fade-in-delay-1">
+            <div class="feature-icon">📱</div>
+            <h3>Mobile Ready</h3>
+            <p>
+              Perfect for mobile apps and PWAs. Lightweight and optimized for
+              mobile performance.
+            </p>
+          </div>
+
+          <div class="feature-card fade-in-delay-2">
+            <div class="feature-icon">⚡</div>
+            <h3>Production Ready</h3>
+            <p>
+              134+ tests passing, 100% RGB test vector compatibility. Built for
+              real-world use.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Section -->
+    <section class="code-section">
+      <div class="container">
+        <h2>Simple, Powerful API</h2>
+
+        <div class="code-example">
+          <pre><code>// Create an RGB20 asset in just a few lines
+const contract = RGB20Contract.create({
+  ticker: 'SBTC',
+  name: 'Synthetic Bitcoin',
+  precision: 8,
+  terms: 'Bitcoin-backed synthetic asset',
+  supply: 2100000000000000,
+  utxoRef: 'txid:vout'
+});
+
+// Get contract information
+console.log(contract.getFormattedContractId());
+// rgb:012e3b1c-674138bd-248df4f6-5128d24c-97102742-415cf1f9-c2bc9961-3cc46c05
+
+// Validate transfers
+const validation = contract.validateTransfer('source:0', 1000, 'dest:1');
+console.log(validation.valid); // true</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <h3>134+</h3>
+            <p>Tests Passing</p>
+          </div>
+          <div class="stat-item">
+            <h3>100%</h3>
+            <p>RGB Test Vector Compatible</p>
+          </div>
+          <div class="stat-item">
+            <h3>5</h3>
+            <p>Architecture Stages</p>
+          </div>
+          <div class="stat-item">
+            <h3>13ms</h3>
+            <p>Contract Creation Time</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="use-cases">
+      <div class="container">
+        <h2>Built for Real-World Applications</h2>
+
+        <div class="use-cases-grid">
+          <div class="use-case">
+            <h3>🎯 DeFi Applications</h3>
+            <p>
+              Create synthetic assets, stablecoins, and tokenized instruments
+              that run entirely in the browser. No backend required for basic
+              operations.
+            </p>
+          </div>
+
+          <div class="use-case">
+            <h3>📱 Mobile Wallets</h3>
+            <p>
+              Lightweight RGB protocol implementation perfect for mobile
+              wallets. Small bundle size with full RGB20 functionality.
+            </p>
+          </div>
+
+          <div class="use-case">
+            <h3>🌐 Web3 DApps</h3>
+            <p>
+              Integrate RGB protocol directly into web applications. Create
+              asset management interfaces and trading platforms.
+            </p>
+          </div>
+
+          <div class="use-case">
+            <h3>🔧 Developer Tools</h3>
+            <p>
+              Build RGB protocol tools, explorers, and utilities. Full API for
+              contract creation, validation, and management.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Get Started Section -->
+    <section
+      id="get-started"
+      class="hero"
+      style="background: var(--darker); color: white"
+    >
+      <div class="container">
+        <h2>Ready to Get Started?</h2>
+        <p>
+          Join the future of RGB protocol development with the most accessible
+          implementation available.
+        </p>
+
+        <div class="cta-buttons">
+          <a href="https://github.com/rgbjs/rgbjs" class="btn btn-primary">
+            📚 View Documentation
+          </a>
+          <a href="https://github.com/rgbjs/rgbjs" class="btn btn-secondary">
+            ⭐ Star on GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>rgbjs</h3>
+            <p>
+              The first production-ready JavaScript implementation of the RGB
+              protocol.
+            </p>
+          </div>
+
+          <div class="footer-section">
+            <h3>Resources</h3>
+            <a href="https://github.com/rgbjs/rgbjs">GitHub Repository</a>
+            <a href="https://github.com/rgbjs/rgbjs/blob/main/README.md"
+              >Documentation</a
+            >
+            <a href="https://github.com/rgbjs/rgbjs/issues">Issue Tracker</a>
+          </div>
+
+          <div class="footer-section">
+            <h3>Community</h3>
+            <a href="https://github.com/rgbjs/rgbjs/discussions">Discussions</a>
+            <a href="https://github.com/rgbjs/rgbjs/blob/main/CONTRIBUTING.md"
+              >Contributing</a
+            >
+            <a
+              href="https://github.com/rgbjs/rgbjs/blob/main/CODE_OF_CONDUCT.md"
+              >Code of Conduct</a
+            >
+          </div>
+
+          <div class="footer-section">
+            <h3>Learn More</h3>
+            <a href="https://rgb.org">RGB Protocol</a>
+            <a href="https://github.com/rgbjs/rgbjs/blob/main/CLAUDE.md"
+              >Implementation Details</a
+            >
+            <a href="https://github.com/rgbjs/rgbjs/blob/main/examples/"
+              >Examples</a
+            >
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>&copy; 2024 rgbjs. Open source software licensed under MIT.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault()
+          const target = document.querySelector(this.getAttribute('href'))
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            })
+          }
+        })
+      })
+
+      // Intersection Observer for animations
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      }
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1'
+            entry.target.style.transform = 'translateY(0)'
+          }
+        })
+      }, observerOptions)
+
+      // Observe all feature cards and use cases
+      document.querySelectorAll('.feature-card, .use-case').forEach(el => {
+        el.style.opacity = '0'
+        el.style.transform = 'translateY(30px)'
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease'
+        observer.observe(el)
+      })
+    </script>
+  </body>
+</html>
