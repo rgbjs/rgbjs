@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check an RGB invoice or file</title>
+<meta name="description" content="Paste an RGB invoice or drop a consignment, and see which RGB line it belongs to, whether it's valid, and what it says. Runs offline in your browser.">
+<link rel="canonical" href="https://rgbjs.com/check.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="rgbjs">
+<meta property="og:url" content="https://rgbjs.com/check.html">
+<meta property="og:title" content="Check an RGB invoice or file">
+<meta property="og:description" content="Paste an invoice or drop a consignment: line, validity, contract and state, checked offline in your browser.">
+<meta property="og:image" content="https://rgbjs.com/img/og-check.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Check an RGB invoice or file">
+<meta name="twitter:description" content="Paste an invoice or drop a consignment: line, validity, contract and state, checked offline in your browser.">
+<meta name="twitter:image" content="https://rgbjs.com/img/og-check.png">
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a2e; --muted: #5f6475; --line: #e6e8ef; --soft: #f5f6fb;
+    --accent: #5a6fd8; --ok: #2e7d32; --bad: #c62828; --warn: #8a6d00;
+    --v011: #0f8f80; --v012: #b7791f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14151f; --fg: #e8e8f0; --muted: #a0a3b5; --line: #2a2c3c; --soft: #1c1e2b;
+      --accent: #8c9cff; --ok: #66bb6a; --bad: #ef5350; --warn: #e0b84a; --v011: #2dd4bf; --v012: #fbbf24; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.55 Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  a { color: var(--accent); }
+  header { border-bottom: 1px solid var(--line); }
+  header nav { max-width: 860px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline; }
+  header .brand { font-weight: 800; color: var(--fg); text-decoration: none; margin-right: auto; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 8px 0 8px; }
+  h2 { font-size: 1.15rem; margin: 28px 0 8px; }
+  .lede { color: var(--muted); margin: 0 0 20px; }
+  .note { border-left: 3px solid var(--warn); background: var(--soft); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 14px 0; font-size: 0.95rem; }
+  textarea { width: 100%; min-height: 84px; resize: vertical; padding: 12px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--bg); color: var(--fg); font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .drop { margin-top: 12px; border: 2px dashed var(--line); border-radius: 10px; padding: 22px 16px; text-align: center; color: var(--muted); cursor: pointer; }
+  .drop.over { border-color: var(--accent); color: var(--fg); background: var(--soft); }
+  .drop input { display: none; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  button { font: 600 14px/1 Inter, sans-serif; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .examples { font-size: 0.9rem; color: var(--muted); }
+  .examples button { padding: 6px 10px; font-size: 13px; }
+  #result { margin-top: 24px; }
+  .verdict { border: 1px solid var(--line); border-left-width: 6px; border-radius: 8px; padding: 14px 16px; }
+  .verdict.ok { border-left-color: var(--ok); } .verdict.bad { border-left-color: var(--bad); } .verdict.warn { border-left-color: var(--warn); }
+  .verdict .title { font-size: 1.2rem; font-weight: 700; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .verdict .why { color: var(--muted); margin-top: 6px; overflow-wrap: anywhere; }
+  .pill { display: inline-block; font: 600 12px/1 Inter, sans-serif; padding: 4px 8px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+  .pill.v011 { color: var(--v011); } .pill.v012 { color: var(--v012); } .pill.ok { color: var(--ok); } .pill.bad { color: var(--bad); } .pill.warn { color: var(--warn); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+  th, td { text-align: left; vertical-align: top; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; width: 30%; }
+  td { overflow-wrap: anywhere; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.88em; }
+  .table-wrap { overflow-x: auto; }
+  details { margin-top: 18px; }
+  pre { background: var(--soft); padding: 10px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+  footer { border-top: 1px solid var(--line); margin-top: 48px; padding-top: 14px; font-size: 0.9rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header><nav><a class="brand" href="/">rgbjs</a><a href="check.html">Check</a><a href="conformance.html">Conformance</a><a href="https://github.com/rgbjs/rgbjs">Source</a></nav></header>
+<main>
+  <h1>Check an RGB invoice or file</h1>
+  <p class="lede">Paste an invoice or contract ID, or drop a consignment (<span class="mono">.rgb</span>) or issuer file. rgbjs works out which RGB line it belongs to, checks it with that line's own code, and shows what it says. Nothing leaves this page.</p>
+
+  <textarea id="text" spellcheck="false" placeholder="rgb:… or contract:…" aria-label="Invoice or contract ID"></textarea>
+  <label class="drop" id="drop">
+    <input type="file" id="file" aria-label="Consignment or issuer file">
+    Drop a <span class="mono">.rgb</span> or <span class="mono">.issuer</span> file here, or click to choose one
+  </label>
+  <div class="row">
+    <button class="primary" id="check">Check</button>
+    <span class="examples">Examples:
+      <button data-text="rgb:Tk3d0h5w-8v4XYCg-7e~Sc0o-Lu6rp~X-~Jt7VHS-jqgzFD8/~/BF/bcrt:utxob:MSLQCKkW-w6caphB-12do1nJ-HNfgxvv-WE3zOOC-s8yZyHq-Ihoa5">v0.11 invoice</button>
+      <button data-text="contract:tb@contract:nztjpjRX-_NVDDgd-EHENsqL-AKsGsyV-F6LzljB-X4WTv0Y/10@at:FWKMBVDc-NBk8dAZA-tYGt2HIP-MtzSRO17-8g3QvRIN-nuPjug/">v0.12 invoice</button>
+      <button data-file="test/vectors/v011/transfer-demo.transfer.rgb">v0.11 transfer</button>
+      <button data-file="test/vectors/v012/TransferDemo.transfer.rgb">v0.12 transfer</button>
+      <button data-file="test/vectors/v012/NftDemo.contract.rgb">v0.12 NFT</button>
+    </span>
+  </div>
+
+  <div id="result" aria-live="polite"></div>
+
+  <div class="note"><strong>Early development, not for real funds.</strong> A valid consignment is valid <em>if</em> its witness transactions confirm: rgbjs doesn't look them up on chain, so check them against your own node or a block explorer before you rely on a transfer.</div>
+  <footer>rgbjs runs each RGB line's own Rust code, compiled to WebAssembly: v0.11 (rgb-protocol 0.11.1) and v0.12 (RGB-WG 0.12.0-rc.3). See the <a href="conformance.html">conformance tests</a> and <a href="https://rgbjs.github.io/rgb-conformance/spec.html">the rules</a>.</footer>
+</main>
+<script type="module">
+const $ = s => document.querySelector(s)
+const result = $('#result')
+let engine = null
+const ready = import('./src/index.js').then(m => { engine = m }).catch(err => show(verdict('bad', 'Could not load rgbjs', err.message)))
+
+// Every value comes from untrusted input: build the DOM with textContent only.
+function el (tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag)
+  for (const [k, v] of Object.entries(attrs)) k === 'class' ? (e.className = v) : e.setAttribute(k, v)
+  for (const k of kids.flat()) if (k != null) e.append(k instanceof Node ? k : String(k))
+  return e
+}
+const pill = (cls, text) => el('span', { class: `pill ${cls}` }, text)
+const linePill = line => pill(line === 'v0.11' ? 'v011' : 'v012', line)
+function verdict (kind, title, why, line) {
+  return el('div', { class: `verdict ${kind}` },
+    el('div', { class: 'title' }, title, line ? linePill(line) : null),
+    why ? el('div', { class: 'why' }, why) : null)
+}
+function table (rows) {
+  const t = el('table')
+  for (const [k, v] of rows) if (v != null && v !== '') t.append(el('tr', {}, el('th', {}, k), el('td', { class: 'mono' }, v)))
+  return el('div', { class: 'table-wrap' }, t)
+}
+function stateTables (state) {
+  const out = []
+  const g = Object.entries(state?.global ?? {}).filter(([, v]) => v.length)
+  if (g.length) out.push(el('h2', {}, 'Global state'), table(g.map(([k, v]) => [k, v.join(', ')])))
+  const u = Object.entries(state?.unverified ?? {})
+  if (u.length) out.push(el('h2', {}, 'Unverified data'), el('p', { class: 'lede' }, 'Shown by the issuer but not checked by the contract.'), table(u.map(([k, v]) => [k, v.join(', ')])))
+  for (const [name, cells] of Object.entries(state?.owned ?? {})) {
+    if (!cells.length) continue
+    const t = el('table', {}, el('tr', {}, el('th', {}, 'Seal'), el('th', {}, 'Value'), el('th', {}, 'Status')))
+    for (const c of cells) {
+      t.append(el('tr', {}, el('td', { class: 'mono' }, c.seal ?? c.outpoint), el('td', { class: 'mono' }, c.value),
+        el('td', {}, c.spent ? pill('warn', 'spent') : c.witness ? pill('ok', 'from witness') : pill('ok', 'unspent'))))
+    }
+    out.push(el('h2', {}, `Owned: ${name}`), el('div', { class: 'table-wrap' }, t))
+  }
+  return out
+}
+function raw (r) { return el('details', {}, el('summary', {}, 'Raw result'), el('pre', {}, JSON.stringify(r, null, 2))) }
+function show (...nodes) { result.replaceChildren(...nodes.flat()) }
+
+function checkText (s) {
+  const line = engine.detectLine(s)
+  if (!line) return show(verdict('bad', 'Not an RGB value', 'v0.11 invoices start with rgb: and v0.12 invoices with contract:. Other text isn\'t an RGB invoice or contract ID.'))
+  const lib = line === 'v0.11' ? engine.v011 : engine.v012
+  try {
+    const inv = lib.parseInvoice(s)
+    const rows = [
+      ['Contract', inv.contractId ?? inv.contractQuery ?? 'any (not named)'],
+      ['Network', `${inv.network}${inv.testnet ? ' (test network)' : ''}`],
+      ['Amount', inv.amount],
+      ['Data', inv.amount ? null : inv.data],
+      ['Pays to', `${inv.beneficiary.type}: ${inv.beneficiary.value}`],
+      ['Schema', inv.schemaId], ['Interface', inv.api], ['Method', inv.method], ['Assignment', inv.assignmentName ?? inv.stateName],
+      ['Expires', inv.expiry ? new Date(inv.expiry * 1000).toISOString() : null],
+      ['Transports', (inv.transports ?? inv.endpoints ?? []).map(t => typeof t === 'string' ? t : `${t.type}${t.host ? ' ' + t.host : ''}`).join(', ')]
+    ]
+    const why = line === 'v0.12' && /@contract:/.test(inv.invoice) ? 'It parses. The doubled contract: prefix is how rgb-wallet 0.12.0-rc.3 prints invoices (AluVM/sonic#27); wallets read both forms.' : 'It parses with this line\'s own invoice code.'
+    return show(verdict('ok', 'Valid invoice', why, line), table(rows), raw(inv))
+  } catch (invoiceErr) {
+    try {
+      const id = lib.parseContractId(s)
+      return show(verdict('ok', 'Valid contract ID', null, line), table([['Contract', id.contractId], ['Hex', id.hex]]), raw(id))
+    } catch {
+      return show(verdict('bad', 'Not a valid invoice', invoiceErr.message, line))
+    }
+  }
+}
+
+function checkBytes (bytes, name) {
+  const head = String.fromCharCode(...bytes.subarray(0, 8))
+  if (head === 'ISSUER  ') {
+    try {
+      const i = engine.v012.parseIssuer(bytes)
+      const known = engine.v012.knownIssuers().some(k => k.id === i.id)
+      return show(verdict(known ? 'ok' : 'warn', known ? 'Known issuer' : 'Issuer rgbjs doesn\'t know', known ? 'rgbjs trusts consignments that use exactly these semantics.' : 'It parses, but rgbjs doesn\'t trust it. Consignments using it will show as untrusted.', 'v0.12'),
+        table([['Name', i.name], ['Developer', i.developer], ['Issuer ID', i.id], ['Codex', i.codexId], ['Signed', i.signed ? 'yes' : 'no (signatures are not checked)']]), raw(i))
+    } catch (e) { return show(verdict('bad', 'Not a valid issuer file', e.message, 'v0.12')) }
+  }
+  const line = engine.detectLine(bytes)
+  if (!line) return show(verdict('bad', 'Not an RGB file', `${name} doesn't start with an RGB v0.11 (RGB\\0) or v0.12 (RGBCNSGN) header.`))
+  let r
+  try { r = engine.validateConsignment(bytes) } catch (e) {
+    return show(verdict('bad', 'Can\'t read this consignment', e.message, line))
+  }
+  if (!r.valid) return show(verdict('bad', 'Invalid consignment', r.error, line), table([['Contract', r.contractId]]), raw(r))
+  const untrusted = r.issuer && !r.issuer.trusted
+  const kind = untrusted ? 'warn' : 'ok'
+  const what = r.kind === 'transfer' || r.operations > 0 ? 'transfer' : 'contract'
+  const why = untrusted
+    ? 'Valid, but rgbjs doesn\'t know this issuer, so the meaning of its state (names, decimals, types) is unverified.'
+    : `Valid, if its witness transaction${(r.witnesses?.length ?? 0) === 1 ? '' : 's'} confirm${(r.witnesses?.length ?? 0) === 1 ? 's' : ''} on chain.`
+  const rows = [
+    ['Contract', r.contractId],
+    ['Name', r.name],
+    ['Schema', r.schema ? `${r.schema} (${r.schemaId})` : null],
+    ['Issuer', r.issuer ? `${r.issuer.name} by ${r.issuer.developer}${r.issuer.trusted ? ' (trusted)' : ' (not trusted)'}` : null],
+    ['Network', `${r.network}${r.testnet ? ' (test network)' : ''}`],
+    ['Operations after genesis', r.operations],
+    ['Witness transactions', (r.witnesses ?? []).map(w => w.txid).join(', ') || 'none (genesis only)']
+  ]
+  const nodes = [verdict(kind, `Valid ${what}${untrusted ? ', unknown issuer' : ''}`, why, line), table(rows)]
+  if (r.terminals?.length) {
+    nodes.push(el('h2', {}, 'Addressed to'), el('p', { class: 'lede' }, 'The blinded seals this transfer is for. If you are the recipient, check that yours is here.'),
+      table(r.terminals.flatMap(t => t.seals.map(s => ['Seal', s]))))
+  }
+  if (r.witnesses?.length) {
+    nodes.push(el('h2', {}, 'Before you rely on it'), el('p', {}, 'Look up each witness transaction on chain and wait for confirmations. rgbjs checks that it closes the right seals, not that it was mined.'))
+  }
+  nodes.push(...stateTables(r.state), raw(r))
+  show(...nodes)
+}
+
+async function go () {
+  await ready
+  if (!engine) return
+  const s = $('#text').value.trim()
+  if (s) return checkText(s)
+  show(verdict('warn', 'Nothing to check', 'Paste an invoice or contract ID, or drop a file.'))
+}
+
+$('#check').addEventListener('click', go)
+$('#text').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) go() })
+$('#file').addEventListener('change', async e => {
+  const f = e.target.files[0]
+  if (!f) return
+  await ready
+  if (engine) checkBytes(new Uint8Array(await f.arrayBuffer()), f.name)
+})
+const drop = $('#drop')
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over') })
+drop.addEventListener('dragleave', () => drop.classList.remove('over'))
+drop.addEventListener('drop', async e => {
+  e.preventDefault()
+  drop.classList.remove('over')
+  const f = e.dataTransfer.files[0]
+  if (!f) return
+  await ready
+  if (engine) checkBytes(new Uint8Array(await f.arrayBuffer()), f.name)
+})
+for (const b of document.querySelectorAll('.examples button')) {
+  b.addEventListener('click', async () => {
+    await ready
+    if (!engine) return
+    if (b.dataset.text) { $('#text').value = b.dataset.text; return checkText(b.dataset.text) }
+    $('#text').value = ''
+    const bytes = new Uint8Array(await (await fetch(b.dataset.file)).arrayBuffer())
+    checkBytes(bytes, b.dataset.file.split('/').pop())
+  })
+}
+</script>
+</body>
+</html>

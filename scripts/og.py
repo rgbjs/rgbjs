@@ -16,6 +16,9 @@ CARDS = {
     'og.png': ('JavaScript for both RGB lines',
                "Each line's own Rust crates, compiled to WebAssembly: invoices, contract IDs "
                'and offline consignment validation for v0.11 and v0.12.'),
+    'og-check.png': ('Check an RGB invoice or file',
+                     'Paste an invoice or drop a consignment: line, validity, contract and state, '
+                     'checked offline in your browser.'),
     'og-conformance.png': ('Conformance, live in your browser',
                            'The upstream RGB test vectors, real CLI invoices and consignments, '
                            'run against both wasm builds as you watch.'),
