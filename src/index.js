@@ -4,6 +4,7 @@ import * as v012 from './v012.js'
 
 export { v011, v012 }
 export { assetSummary, formatAmount } from './summary.js'
+export { checkWitnesses, defaultServer, ESPLORA } from './chain.js'
 
 const V011_FILE = 'RGB\0'
 const V012_FILE = 'RGBCNSGN'

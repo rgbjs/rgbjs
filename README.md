@@ -15,7 +15,7 @@ RGB is now two incompatible protocols:
 
 The [RGB Docs](https://rgb-docs.github.io/getting-started/two-rgbs) explain the split.
 
-rgbjs doesn't reimplement either protocol. It wraps the reference code, so it accepts and rejects what those crates accept and reject. Everything runs offline: rgbjs holds no keys and makes no network requests.
+rgbjs doesn't reimplement either protocol. It wraps the reference code, so it accepts and rejects what those crates accept and reject. Everything runs offline: rgbjs holds no keys, and its only network request is the opt-in `checkWitnesses` lookup.
 
 ## What works
 
@@ -29,6 +29,7 @@ rgbjs doesn't reimplement either protocol. It wraps the reference code, so it ac
 | Issue a contract (test networks) | yes: NIA, CFA, UDA, IFA, PFA | yes: RGB20 FNA, RGB25 UFA, or any issuer file |
 | Create an invoice (test networks) | yes | yes |
 | Check what a transfer pays you, from your invoice secret | yes | yes |
+| Look up witness confirmations on an Esplora server (opt-in) | yes | yes |
 
 ## Use
 
@@ -81,6 +82,14 @@ Did a transfer pay me? Give it the transfer and the secret from your invoice:
 const r = v011.receive(transferBytes, { outpoint, blinding })           // v0.12: { outpoint, noiseSeed, nonce }
 r.receive.addressedToYou   // true if the transfer is for your seal
 r.receive.received         // [{ name: 'assetOwner', value: '100', outpoint, witness }]
+```
+
+Are the witnesses mined? This is the only rgbjs call that uses the network, and only the transaction IDs are sent:
+
+```js
+import { checkWitnesses, ESPLORA } from 'rgbjs'
+const c = await checkWitnesses(result.witnesses.map(w => w.txid), { server: ESPLORA.signet })
+c.results   // [{ txid, state: 'mined' | 'mempool' | 'not-found', height, confirmations }]
 ```
 
 [create.html](https://rgbjs.com/create.html) does this in the browser, and [check.html](https://rgbjs.com/check.html) checks any invoice or file.

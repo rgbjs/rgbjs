@@ -52,6 +52,8 @@
   .examples { font-size: 0.9rem; color: var(--muted); }
   .examples button { padding: 6px 10px; font-size: 13px; }
   #result { margin-top: 24px; }
+  .chain select, .chain input { font: 14px Inter, sans-serif; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); }
+  .chain input { min-width: 0; flex: 1 1 220px; }
   details.paid { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
   details.paid summary { cursor: pointer; font-weight: 600; }
   details.paid textarea { min-height: 70px; margin-top: 8px; }
@@ -78,7 +80,7 @@
 <header><nav><a class="brand" href="/">rgbjs</a><a href="create.html">Create</a><a href="check.html">Check</a><a href="conformance.html">Conformance</a><a href="https://github.com/rgbjs/rgbjs">Source</a></nav></header>
 <main>
   <h1>Check an RGB invoice or file</h1>
-  <p class="lede">Paste an invoice or contract ID, or drop a consignment (<span class="mono">.rgb</span>) or issuer file. rgbjs works out which RGB line it belongs to, checks it with that line's own code, and shows what it says. Nothing leaves this page.</p>
+  <p class="lede">Paste an invoice or contract ID, or drop a consignment (<span class="mono">.rgb</span>) or issuer file. rgbjs works out which RGB line it belongs to, checks it with that line's own code, and shows what it says. Nothing leaves this page unless you choose to look up witness transactions on chain.</p>
 
   <textarea id="text" spellcheck="false" placeholder="rgb:… or contract:…" aria-label="Invoice or contract ID"></textarea>
   <label class="drop" id="drop">
@@ -207,6 +209,43 @@ function paidVerdict (r, line, S) {
   return verdict('ok', `Paid to you: ${what}`, `On ${rec.received[0].outpoint}.${w.length ? ` Wait until witness ${w.join(', ')} is confirmed on chain before you treat it as yours.` : ''}`, line)
 }
 
+// Optional on-chain lookup: the only network request this page makes, and
+// only when the viewer clicks. The server learns the transaction IDs.
+const SERVERS = [['signet', 'Signet (mempool.space)'], ['testnet4', 'Testnet4 (mempool.space)'], ['testnet3', 'Testnet3 (mempool.space)'], ['bitcoin', 'Mainnet (mempool.space)'], ['custom', 'Another Esplora server…']]
+function chainPanel (r, paid) {
+  const txids = r.witnesses.map(w => w.txid)
+  const def = engine.defaultServer(r)
+  const pick = el('select', { id: 'chain-server', 'aria-label': 'Esplora server' }, ...SERVERS.map(([v, l]) => { const o = el('option', { value: v }, l); return o }))
+  const key = Object.entries(engine.ESPLORA).find(([, u]) => u === def)?.[0]
+  pick.value = key ?? (r.network === 'regtest' ? 'custom' : 'signet')
+  const custom = el('input', { id: 'chain-custom', class: 'mono', placeholder: 'https://your-esplora/api', 'aria-label': 'Esplora URL' })
+  custom.hidden = pick.value !== 'custom'
+  pick.addEventListener('change', () => { custom.hidden = pick.value !== 'custom' })
+  const go = el('button', { type: 'button' }, `Look up ${txids.length} witness transaction${txids.length === 1 ? '' : 's'}`)
+  const note = el('p', { class: 'lede' }, r.network === 'regtest'
+    ? 'This is a regtest consignment: use your own regtest Esplora server.'
+    : 'This sends the transaction IDs, and nothing else, to the server you pick.')
+  const out = el('div', { 'aria-live': 'polite' })
+  go.addEventListener('click', async () => {
+    const server = pick.value === 'custom' ? custom.value.trim() : engine.ESPLORA[pick.value]
+    out.replaceChildren(el('p', { class: 'lede' }, `Asking ${server}…`))
+    try {
+      const c = await engine.checkWitnesses(txids, { server })
+      const rows = c.results.map(x => [x.txid, x.state === 'mined' ? `mined in block ${x.height}, ${x.confirmations} confirmation${x.confirmations === 1 ? '' : 's'}` : x.state === 'mempool' ? 'broadcast, not mined yet' : 'not found on this server: not broadcast yet, or another network'])
+      const min = Math.min(...c.results.map(x => x.confirmations))
+      const all = c.results.every(x => x.state === 'mined')
+      const head = all
+        ? verdict(min >= 6 ? 'ok' : 'warn', `On chain: ${min} confirmation${min === 1 ? '' : 's'}`, min >= 6 ? 'Every witness is mined and has at least 6 confirmations.' : 'Every witness is mined. Many wallets wait for 6 confirmations before treating a payment as final.')
+        : verdict('warn', 'Not confirmed yet', 'At least one witness isn\'t mined. Until it is, the transfer can still fail.')
+      out.replaceChildren(head, table(rows), el('p', { class: 'lede' }, `Checked on ${c.server} at chain height ${c.tip}.`))
+      if (paid && all) paid.querySelector('.why')?.append(` On chain: ${min} confirmation${min === 1 ? '' : 's'}.`)
+    } catch (e) {
+      out.replaceChildren(verdict('bad', 'Couldn\'t check on chain', `${e.message}. Check the server URL and your connection.`))
+    }
+  })
+  return el('div', { class: 'chain' }, note, el('div', { class: 'row' }, pick, custom, go), out)
+}
+
 function checkBytes (bytes, name) {
   const head = String.fromCharCode(...bytes.subarray(0, 8))
   if (head === 'ISSUER  ') {
@@ -262,7 +301,7 @@ function checkBytes (bytes, name) {
       table(r.terminals.flatMap(t => t.seals.map(s => ['Seal', s]))))
   }
   if (r.witnesses?.length) {
-    nodes.push(el('h2', {}, 'Before you rely on it'), el('p', {}, 'Look up each witness transaction on chain and wait for confirmations. rgbjs checks that it closes the right seals, not that it was mined.'))
+    nodes.push(el('h2', {}, 'Before you rely on it'), el('p', {}, 'Look up each witness transaction on chain and wait for confirmations. rgbjs checks that it closes the right seals, not that it was mined.'), chainPanel(r, paid))
   }
   nodes.push(...stateTables(r.state, S), raw(r))
   show(...nodes)
