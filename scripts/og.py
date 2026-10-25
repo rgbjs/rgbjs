@@ -14,8 +14,8 @@ WHITE, SOFT, PILL = (255, 255, 255), (232, 228, 255), (240, 147, 251)
 
 CARDS = {
     'og.png': ('JavaScript for both RGB lines',
-               "Each line's own Rust crates, compiled to WebAssembly: create contracts and invoices, "
-               'and validate transfers, for v0.11 and v0.12, offline.'),
+               "Each line's own Rust crates, compiled to WebAssembly: validate transfers, create "
+               'contracts and invoices, and pay invoices, offline and keyless.'),
     'og-create.png': ('Create an RGB contract or invoice',
                       'Issue a token or make an invoice on a test network, for either RGB line, '
                       'offline in your browser.'),

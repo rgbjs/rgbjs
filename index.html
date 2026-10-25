@@ -7,7 +7,7 @@
     <title>rgbjs: JavaScript for both RGB lines</title>
     <meta
       name="description"
-      content="JavaScript for both RGB lines (v0.11 and v0.12): create contracts and invoices, and validate transfers, offline, with each line's own Rust crates compiled to WebAssembly. Early development."
+      content="JavaScript for both RGB lines (v0.11 and v0.12): validate transfers, create contracts and invoices, and pay invoices (v0.12, OP_RETURN or tapret), offline and keyless, with each line's own Rust crates compiled to WebAssembly. Early development."
     />
 
     <!-- Open Graph / Twitter -->
@@ -16,15 +16,15 @@
     <meta property="og:site_name" content="rgbjs" />
     <meta property="og:url" content="https://rgbjs.com/" />
     <meta property="og:title" content="rgbjs: JavaScript for both RGB lines" />
-    <meta property="og:description" content="JavaScript for both RGB lines (v0.11 and v0.12): create contracts and invoices, and validate transfers, offline, with each line's own Rust crates compiled to WebAssembly. Early development." />
-    <meta property="og:image" content="https://rgbjs.com/img/og.png" />
+    <meta property="og:description" content="JavaScript for both RGB lines (v0.11 and v0.12): validate transfers, create contracts and invoices, and pay invoices (v0.12, OP_RETURN or tapret), offline and keyless, with each line's own Rust crates compiled to WebAssembly. Early development." />
+    <meta property="og:image" content="https://rgbjs.com/img/og.png?v=2" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="rgbjs: JavaScript for both RGB lines, v0.11 and v0.12" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="rgbjs: JavaScript for both RGB lines" />
-    <meta name="twitter:description" content="JavaScript for both RGB lines (v0.11 and v0.12): create contracts and invoices, and validate transfers, offline, with each line's own Rust crates compiled to WebAssembly. Early development." />
-    <meta name="twitter:image" content="https://rgbjs.com/img/og.png" />
+    <meta name="twitter:description" content="JavaScript for both RGB lines (v0.11 and v0.12): validate transfers, create contracts and invoices, and pay invoices (v0.12, OP_RETURN or tapret), offline and keyless, with each line's own Rust crates compiled to WebAssembly. Early development." />
+    <meta name="twitter:image" content="https://rgbjs.com/img/og.png?v=2" />
 
     <style>
       :root {
@@ -434,6 +434,9 @@
             <a href="check.html" class="btn btn-secondary">
               Check an invoice or file
             </a>
+            <a href="https://bitcoin-blake.github.io/bunting/" class="btn btn-secondary">
+              See it in a wallet
+            </a>
             <a href="conformance.html" class="btn btn-secondary">
               Run the tests in your browser
             </a>
@@ -462,19 +465,20 @@
             <div class="feature-icon">🔀</div>
             <h3>Both lines</h3>
             <p>
-              <code>@rgbjs/v011</code> and <code>@rgbjs/v012</code> wrap each
+              <code>rgbjs/v011</code> and <code>rgbjs/v012</code> wrap each
               line's crates. <code>rgbjs</code> tells you which line an invoice
-              belongs to and sends it to the right one.
+              or file belongs to and sends it to the right one.
             </p>
           </div>
 
           <div class="feature-card fade-in-delay-1">
             <div class="feature-icon">🔒</div>
-            <h3>Read-only first</h3>
+            <h3>No keys, offline</h3>
             <p>
-              The first release holds no keys and opens no network
-              connections: it parses and writes invoices, formats contract IDs
-              and checks consignments offline.
+              rgbjs never holds a key. A payment comes back as an unsigned
+              PSBT for your own signer, with the transfer for the payee. It
+              works offline; its only network call is an opt-in lookup of
+              witness transactions.
             </p>
           </div>
 
@@ -521,28 +525,32 @@ result.valid        // valid if its witness transactions confirm</code></pre>
             <h3>Works now</h3>
             <p>
               Both lines: parse invoices and contract IDs, tell the lines
-              apart, validate contracts and transfers offline, and issue
-              contracts and invoices on test networks.
+              apart, validate contracts and transfers offline, issue contracts
+              and invoices on test networks, and see what a transfer pays you.
+              v0.12: pay invoices, committing with OP_RETURN or tapret.
               <a href="create.html">Create</a> or <a href="check.html">check</a>
               your own. The
               <a href="conformance.html">conformance page</a> runs the
-              upstream test vectors in your browser.
+              upstream test vectors and payments mined on a test network in
+              your browser. <a href="https://bitcoin-blake.github.io/bunting/">Bunting</a>,
+              a wallet in a browser tab, uses rgbjs on the Bitcoin BLAKE2b
+              testnet4.
             </p>
           </div>
 
           <div class="use-case">
             <h3>Next</h3>
             <p>
-              Transfer consignment vectors for both lines, then a first npm
-              release. Version 0.0.1 until then.
+              A first npm release, then payments for v0.11. Version 0.0.1
+              until then.
             </p>
           </div>
 
           <div class="use-case">
             <h3>Later</h3>
             <p>
-              Wallet features such as paying and accepting transfers, once the
-              read-only layer is solid.
+              NFT transfers (RGB21), which the pinned v0.12 code can't build
+              yet, and whatever the wallets built on rgbjs need.
             </p>
           </div>
 
