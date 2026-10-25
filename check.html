@@ -217,9 +217,9 @@ function checkBytes (bytes, name) {
   }
   const line = engine.detectLine(bytes)
   if (!line) return show(verdict('bad', 'Not an RGB file', `${name} doesn't start with an RGB v0.11 (RGB\\0) or v0.12 (RGBCNSGN) header.`))
-  let r, paid = null
+  let r, paid = null, s
+  try { s = readSecret() } catch (e) { return show(verdict('bad', 'Can\'t read the invoice secret', e.message, line)) }
   try {
-    const s = readSecret()
     if (s && (s.line ? s.line === line : true)) {
       r = line === 'v0.11'
         ? engine.v011.receive(bytes, { outpoint: s.outpoint, blinding: String(s.blinding) })
