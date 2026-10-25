@@ -140,3 +140,12 @@ test('created-contract vectors are reproduced byte for byte', async () => {
     assert.equal(r.issuer.trusted, true, k)
   }
 })
+
+test('v0.12 invoice with an expiry: written in RFC 3339 UTC and read back', () => {
+  const contractId = validateConsignment(v012.issueContract(fna, SEED)).contractId
+  const at = 1793016000 // 2026-10-26T12:00:00Z
+  const created = v012.createInvoice({ contractId, value: 25, outpoint: OUT_B, noiseSeed: SEED, nonce: 3, expiry: at })
+  assert.match(created.invoice, /\/\?expiry=2026-10-26T12:00:00Z$/)
+  assert.equal(parseInvoice(created.invoice).expiry, at)
+  assert.equal(parseInvoice(v012.createInvoice({ contractId, value: 25, outpoint: OUT_B, noiseSeed: SEED, nonce: 3 }).invoice).expiry, null)
+})

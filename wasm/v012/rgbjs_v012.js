@@ -10,9 +10,10 @@
  * @param {string} outpoint
  * @param {Uint8Array} noise_seed
  * @param {bigint} nonce
+ * @param {number | null} [expiry]
  * @returns {string}
  */
-export function createInvoice(contract_id, value, outpoint, noise_seed, nonce) {
+export function createInvoice(contract_id, value, outpoint, noise_seed, nonce, expiry) {
     let deferred6_0;
     let deferred6_1;
     try {
@@ -25,7 +26,7 @@ export function createInvoice(contract_id, value, outpoint, noise_seed, nonce) {
         const len2 = WASM_VECTOR_LEN;
         const ptr3 = passArray8ToWasm0(noise_seed, wasm.__wbindgen_export2);
         const len3 = WASM_VECTOR_LEN;
-        wasm.createInvoice(retptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, nonce);
+        wasm.createInvoice(retptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, nonce, isLikeNone(expiry) ? Number.MAX_SAFE_INTEGER : (expiry) >>> 0);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);

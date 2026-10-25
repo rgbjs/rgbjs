@@ -76,7 +76,7 @@ const { invoice, seal } = v011.createInvoice({ network: 'regtest', outpoint: 'tx
 
 // v0.12: rgb-wallet's issue parameters as JSON, plus a secret noise seed (keep it).
 const bytes = v012.issueContract(params, crypto.getRandomValues(new Uint8Array(32)))
-const inv = v012.createInvoice({ contractId: 'contract:…', value: 100, outpoint: 'txid:vout', noiseSeed, nonce: 0 })
+const inv = v012.createInvoice({ contractId: 'contract:…', value: 100, outpoint: 'txid:vout', noiseSeed, nonce: 0, expiry })  // expiry: optional, Unix seconds
 ```
 
 Did a transfer pay me? Give it the transfer and the secret from your invoice:
@@ -138,6 +138,7 @@ Both lines run the reference validator. **Witness transactions aren't looked up 
 - `wasm/v012` is built with patched copies of `strict_encoding` 2.9.1 and `strict_types` 2.9.1 (`rust/patches/`). Both pre-allocate memory from lengths read out of the data. One corrupted byte in a consignment can then request ~4.4 GB, or overflow capacity and panic. The pinned `rgb-wallet` 0.12.0-rc.3 crashes on `rgb accept` of such a file. The patches cap pre-allocation, as rgb-protocol's `rgb-strict-encoding` 1.0.5 already does for v0.11. The tests check that no corrupted consignment traps.
 
 - v0.12 invoices print as `contract:tb@contract:<id>/...` instead of `contract:tb@<id>/...` ([AluVM/sonic#27](https://github.com/AluVM/sonic/issues/27)). The cause is that `CallScope`'s `Display` doesn't pass the `{:-}` flag on to `ContractId`. Both forms parse to the same invoice.
+- v0.12 invoice expiry: upstream (`sonic-callreq` 0.12.0) writes `?expiry=` as RFC 3339 with a `+00:00` offset, and its own parser rejects that form (the `+` reads as a space). `v012.createInvoice({ expiry })` writes UTC with a `Z`, which reads back. Upstream also writes several query parameters without `&` between them.
 - The 0.11.2 consignment format (rgb-api 0.11.2-rc.1) can't be read. 0.11.1 is pinned until 0.11.2 is final.
 - Size: `wasm/v011` is 3.4 MB (745 KB gzipped) and `wasm/v012` 2.7 MB (680 KB gzipped, of which rgb-runtime for payments is about 570 KB raw). secp256k1 is built with `lowmemory` to keep its precomputed tables small, which makes signature checks a little slower. `rgb-consensus` 0.11.1 still pulls in two secp256k1 versions.
 - rgb-runtime 0.12.0-rc.3 always commits a payment with an `OP_RETURN` output. `payInvoice({ commit: 'tapret' })` runs its payment steps (fulfill, compose, resolve, bundle, fill, complete) itself, with the change output marked as the tapret host instead. The pinned `rgb-wallet` accepts the result but can't make one.

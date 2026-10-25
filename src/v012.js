@@ -45,10 +45,12 @@ export function issueContract (params, noiseSeed, issuerFile) {
 /**
  * Creates an invoice paying to an auth token on one of your outputs, derived
  * from `outpoint`, the secret `noiseSeed` and `nonce` as rgb-wallet does.
+ * `expiry` (optional, Unix seconds) adds `?expiry=<RFC 3339>`; parseInvoice
+ * reports it back as `expiry`.
  * Returns { invoice, authToken, seal }.
  */
-export const createInvoice = ({ contractId, value, outpoint, noiseSeed, nonce = 0 }) =>
-  call(wasm.createInvoice, contractId, String(value), outpoint, noiseSeed, BigInt(nonce))
+export const createInvoice = ({ contractId, value, outpoint, noiseSeed, nonce = 0, expiry }) =>
+  call(wasm.createInvoice, contractId, String(value), outpoint, noiseSeed, BigInt(nonce), expiry === undefined ? undefined : Number(expiry))
 
 /**
  * Did this consignment pay me? Give the file and your invoice secret

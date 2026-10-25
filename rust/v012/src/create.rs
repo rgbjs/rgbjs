@@ -78,7 +78,7 @@ pub fn issue_contract(params: &str, noise_seed: &[u8], issuer: Option<Vec<u8>>) 
 /// amount (or, for non-fungible state, a string). Returns JSON with the
 /// `invoice`, the `authToken`, and the `seal` details you must keep.
 #[wasm_bindgen(js_name = createInvoice)]
-pub fn create_invoice(contract_id: &str, value: &str, outpoint: &str, noise_seed: &[u8], nonce: u64) -> Res<String> {
+pub fn create_invoice(contract_id: &str, value: &str, outpoint: &str, noise_seed: &[u8], nonce: u64, expiry: Option<u32>) -> Res<String> {
     let id = ContractId::from_str(contract_id).map_err(|e| format!("contract ID: {e}"))?;
     let outpoint = Outpoint::from_str(outpoint).map_err(|e| format!("outpoint: {e}"))?;
     if value.is_empty() || value.contains(['/', '@', '?', '#']) {
@@ -88,8 +88,17 @@ pub fn create_invoice(contract_id: &str, value: &str, outpoint: &str, noise_seed
     let auth = seal.auth_token();
     // The single-prefix form the upstream tests treat as canonical; rgb-wallet
     // 0.12.0-rc.3 prints `contract:tb@contract:<id>` but reads both.
-    let invoice = format!("contract:tb@{id:-}/{value}@{auth}/");
-    crate::parse_invoice(&invoice)?;
+    let mut invoice = format!("contract:tb@{id:-}/{value}@{auth}/");
+    if let Some(secs) = expiry {
+        // RFC 3339 in UTC with a `Z`, which the upstream parser reads back as
+        // is (a `+00:00` offset's `+` can turn into a space in a query).
+        let at = chrono::DateTime::from_timestamp(secs as i64, 0).ok_or("expiry: not a valid time")?;
+        invoice.push_str(&format!("?expiry={}", at.to_rfc3339_opts(chrono::SecondsFormat::Secs, true)));
+    }
+    let parsed: serde_json::Value = serde_json::from_str(&crate::parse_invoice(&invoice)?).map_err(|e| e.to_string())?;
+    if parsed["expiry"].as_i64() != expiry.map(|s| s as i64) {
+        return Err("expiry: the invoice doesn't read back with the same expiry".into());
+    }
     Ok(json!({
         "line": "v0.12",
         "invoice": invoice,
