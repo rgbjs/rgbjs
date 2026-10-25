@@ -107,7 +107,7 @@ Are the witnesses mined? This is the only rgbjs call that uses the network, and 
 
 ```js
 import { checkWitnesses, ESPLORA } from 'rgbjs'
-const c = await checkWitnesses(result.witnesses.map(w => w.txid), { server: ESPLORA.signet })
+const c = await checkWitnesses(result.witnesses.map(w => w.txid), { server: ESPLORA.signet })  // or ESPLORA.blake for txbt4
 c.results   // [{ txid, state: 'mined' | 'mempool' | 'not-found', height, confirmations }]
 ```
 

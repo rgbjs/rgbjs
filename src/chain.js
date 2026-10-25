@@ -7,7 +7,11 @@ export const ESPLORA = {
   bitcoin: 'https://mempool.space/api',
   testnet4: 'https://mempool.space/testnet4/api',
   testnet3: 'https://mempool.space/testnet/api',
-  signet: 'https://mempool.space/signet/api'
+  signet: 'https://mempool.space/signet/api',
+  // The Bitcoin BLAKE2b testnet4 (txbt4): the same history as testnet4 up to
+  // its fork, then its own blocks. A v0.12 file can't say which of the two it
+  // is on, so a transfer not found on one may be on the other.
+  blake: 'https://mempool.guide/testnet4/api'
 }
 
 /**

@@ -42,3 +42,7 @@ test('defaultServer picks the public server for the network', () => {
   assert.equal(defaultServer({ line: 'v0.11', network: 'regtest' }), null)
   assert.equal(defaultServer({ line: 'v0.12', network: 'bitcoin', testnet: true }), ESPLORA.testnet4)
 })
+
+test('ESPLORA has the BLAKE2b testnet4 explorer', () => {
+  assert.equal(ESPLORA.blake, 'https://mempool.guide/testnet4/api')
+})

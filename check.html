@@ -211,7 +211,7 @@ function paidVerdict (r, line, S) {
 
 // Optional on-chain lookup: the only network request this page makes, and
 // only when the viewer clicks. The server learns the transaction IDs.
-const SERVERS = [['signet', 'Signet (mempool.space)'], ['testnet4', 'Testnet4 (mempool.space)'], ['testnet3', 'Testnet3 (mempool.space)'], ['bitcoin', 'Mainnet (mempool.space)'], ['custom', 'Another Esplora server…']]
+const SERVERS = [['signet', 'Signet (mempool.space)'], ['testnet4', 'Testnet4 (mempool.space)'], ['blake', 'BLAKE2b testnet4, txbt4 (mempool.guide)'], ['testnet3', 'Testnet3 (mempool.space)'], ['bitcoin', 'Mainnet (mempool.space)'], ['custom', 'Another Esplora server…']]
 function chainPanel (r, paid) {
   const txids = r.witnesses.map(w => w.txid)
   const def = engine.defaultServer(r)
