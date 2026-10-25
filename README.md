@@ -76,7 +76,7 @@ const { invoice, seal } = v011.createInvoice({ network: 'regtest', outpoint: 'tx
 
 // v0.12: rgb-wallet's issue parameters as JSON, plus a secret noise seed (keep it).
 const bytes = v012.issueContract(params, crypto.getRandomValues(new Uint8Array(32)))
-const inv = v012.createInvoice({ contractId: 'contract:…', value: 100, outpoint: 'txid:vout', noiseSeed, nonce: 0, expiry })  // expiry: optional, Unix seconds
+const inv = v012.createInvoice({ contractId: 'contract:…', amount: 100, outpoint: 'txid:vout', noiseSeed, nonce: 0, expiry })  // expiry: optional, Unix seconds
 ```
 
 Did a transfer pay me? Give it the transfer and the secret from your invoice:
@@ -98,9 +98,13 @@ const p = v012.payInvoice({
   seals: [{ outpoint, nonce }],               // your invoices that were paid
   fee: 500, noiseSeed,                        // the 32-byte seed your contracts and invoices used
   commit: 'tapret' })                         // or 'opret' (the default): see below
-p.psbt       // base64; sign and broadcast it, then
-p.transfer   // give this to the payee
-p.backup     // keep this: pay from it next time (the change is p.change.vout of p.txid)
+p.psbt       // base64 (PSBT version 0); sign and broadcast it, then
+p.transfer   // bytes: give this to the payee
+p.backup     // bytes: keep this, and pay from it next time
+p.txid       // the witness transaction's ID; p.tx is the unsigned transaction as hex
+p.change     // { vout, terminal } of your change output, or null
+p.tapret     // with commit: 'tapret', { vout, merkleRoot, scriptPubkey } (hex); otherwise null
+p.fee        // in sats
 ```
 
 The commitment goes in an OP_RETURN output (`opret`, what rgb-wallet 0.12.0-rc.3 always makes), or with `commit: 'tapret'` inside the change output's taproot key, so the transaction has no OP_RETURN and its change looks like any taproot output. Nodes that limit OP_RETURN data don't affect tapret. A tapret change coin is at `p.tapret.scriptPubkey`, not the descriptor's plain address: to spend it later, sign with the key tweaked by `p.tapret.merkleRoot` (BIP341).
@@ -115,7 +119,36 @@ c.results   // [{ txid, state: 'mined' | 'mempool' | 'not-found', height, confir
 
 [create.html](https://rgbjs.com/create.html) does this in the browser, and [check.html](https://rgbjs.com/check.html) checks any invoice or file.
 
-Every function throws an `Error` with the upstream message when its input is invalid. To load only one line, import `rgbjs/v011` or `rgbjs/v012`.
+Every function throws an `Error` when its input is invalid, saying what the input wasn't ("not a valid v0.12 invoice: …") and then the upstream reason. To load only one line, import `rgbjs/v011` or `rgbjs/v012`.
+
+### API
+
+| Export | From | Takes | Returns |
+|---|---|---|---|
+| `detectLine` | `rgbjs` | a string or `Uint8Array` | `'v0.11'`, `'v0.12'` or `null` |
+| `parseInvoice` | `rgbjs`, `v011`, `v012` | an invoice string | the invoice's fields, with `line` |
+| `parseContractId` | `rgbjs`, `v011`, `v012` | a contract ID | `{ line, contractId, … }` in canonical form |
+| `validateConsignment` | `rgbjs`, `v011`, `v012` | a `.rgb` file (`Uint8Array`) | `{ valid, error?, contractId, state, witnesses, … }` |
+| `assetSummary` | `rgbjs` | a `validateConsignment` result | `{ ticker, name, decimals, issued }` |
+| `formatAmount` | `rgbjs` | a raw amount string, decimals | the amount with its decimal point |
+| `checkWitnesses` | `rgbjs` | txids, `{ server, fetch? }` | `{ server, tip, results: [{ txid, state, height, confirmations }] }` (network) |
+| `defaultServer` | `rgbjs` | a `validateConsignment` result | the public Esplora URL for its network, or `null` |
+| `ESPLORA` | `rgbjs` | | public Esplora URLs: `bitcoin`, `testnet4`, `testnet3`, `signet`, `blake` |
+| `v011`, `v012` | `rgbjs` | | each line's module, as below |
+| `line` | `v011`, `v012` | | `'v0.11'` or `'v0.12'` |
+| `knownSchemas` | `v011` | | the schemas rgbjs trusts |
+| `knownIssuers` | `v012` | | the issuers rgbjs trusts |
+| `parseIssuer` | `v012` | an `.issuer` file (`Uint8Array`) | `{ id, name, … }` |
+| `issueContract` | `v011` | `{ schema, network, … }` | a contract file (`Uint8Array`) |
+| `issueContract` | `v012` | rgb-wallet's issue parameters, a noise seed, an optional `.issuer` file | a contract file (`Uint8Array`) |
+| `createInvoice` | `v011` | `{ network, outpoint, blinding, contractId?, amount?, … }` | `{ invoice, secretSeal, seal }` |
+| `createInvoice` | `v012` | `{ contractId, amount, outpoint, noiseSeed, nonce?, expiry? }` | `{ invoice, authToken, seal }` |
+| `receive` | `v011` | a transfer, `{ outpoint, blinding }` | the validation result plus `receive: { addressedToYou, received }` |
+| `receive` | `v012` | a transfer, `{ outpoint, noiseSeed, nonce? }` | the validation result plus `receive: { authToken, addressedToYou, received }` |
+| `payInvoice` | `v012` | `{ contracts, invoice, descriptor, coins, seals?, fee, noiseSeed, giveaway?, commit? }` | `{ line, psbt, txid, tx, fee, change, tapret, transfer, backup }` |
+| `deriveAddress` | `v012` | an xpub descriptor, a terminal such as `'&0/0'` | `{ address, scriptPubkey }` |
+
+Creating and paying work on test networks only: mainnet parameters and invoices are refused.
 
 ### What `valid: true` means
 

@@ -11,7 +11,7 @@
     "./v011": "./src/v011.js",
     "./v012": "./src/v012.js"
   },
-  "files": ["src", "wasm", "README.md", "LICENSE", "NOTICE"],
+  "files": ["src", "wasm", "README.md", "CHANGELOG.md", "LICENSE", "NOTICE"],
   "engines": { "node": ">=18" },
   "scripts": {
     "build": "scripts/build.sh",
