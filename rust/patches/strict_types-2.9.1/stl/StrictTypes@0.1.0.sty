@@ -1,0 +1,272 @@
+{-
+  Id: stl:6Z6S5ztA-l3_RfoW-uOIW~K0-04t7R_3-KIiByhE-1W4rPFA#henry-heart-survive
+  Name: StrictTypes
+  Version: 0.1.0
+  Description: Confined generalized algebraic data types (GADT)
+  Author: Dr Maxim Orlovsky <orlovsky@ubideco.org>
+  Copyright (C) 2023-2024 UBIDECO Institute. All rights reserved.
+  License: Apache-2.0
+-}
+
+@context
+typelib StrictTypes
+
+import Std#delete-roman-hair
+  use AlphaLodash#halt-alamo-mimic
+  use AlphaNumLodash#percent-bingo-caesar
+  use AlphaCapsLodash#duet-hammer-labor
+  use AlphaSmallLodash#pioneer-eagle-spell
+
+
+@mnemonic(herman-chariot-madrid)
+data Dependency        : id TypeLibId, name LibName
+
+@mnemonic(collect-museum-penguin)
+data EnumVariants      : {Variant ^ 1..0xff}
+
+@mnemonic(public-toronto-velvet)
+data ExternRef         : libId TypeLibId, semId SemId
+
+@mnemonic(cotton-store-figure)
+data FieldInlineRef    : name FieldName, ty InlineRef
+
+@mnemonic(rent-olympic-gemini)
+data FieldInlineRef1   : name FieldName, ty InlineRef1
+
+@mnemonic(lithium-hippie-capital)
+data FieldInlineRef2   : name FieldName, ty InlineRef2
+
+@mnemonic(trumpet-neptune-gondola)
+data FieldLibRef       : name FieldName, ty LibRef
+
+@mnemonic(present-flute-herman)
+data FieldName         : Std.AlphaSmallLodash, [Std.AlphaNumLodash ^ ..0x63]
+
+@mnemonic(gemini-rainbow-loyal)
+data FieldSemId        : name FieldName, ty SemId
+
+@mnemonic(exotic-october-option)
+data Ident             : Std.AlphaLodash, [Std.AlphaNumLodash ^ ..0x63]
+
+@mnemonic(fame-local-critic)
+data InlineRef         : inline TyInlineRef1
+                       | named SemId
+                       | extern ExternRef
+
+@mnemonic(twin-maximum-darwin)
+data InlineRef1        : inline TyInlineRef2
+                       | named SemId
+                       | extern ExternRef
+
+@mnemonic(orient-sting-arthur)
+data InlineRef2        : named SemId
+                       | extern ExternRef
+
+@mnemonic(germany-ammonia-parole)
+data ItemCase          : unnamedField U8
+                       | namedField (U8, FieldName)
+                       | unionVariant (U8, VariantName)
+                       | arrayItem#16 ()
+                       | listItem ()
+                       | setItem ()
+                       | mapKey ()
+                       | mapValue ()
+
+@mnemonic(cabaret-toyota-arena)
+data LibName           : Std.AlphaCapsLodash, [Std.AlphaNumLodash ^ ..0x63]
+
+@mnemonic(equal-hello-amigo)
+data LibRef            : inline TyInlineRef
+                       | named SemId
+                       | extern ExternRef
+
+@mnemonic(spoon-magnum-guest)
+data MemoryLayout      : items [TypeInfo ^ ..0xffffffff]
+
+@mnemonic(neuron-ginger-dispute)
+data NamedFieldsInlineRef : [FieldInlineRef ^ 1..0xff]
+
+@mnemonic(fire-alarm-toyota)
+data NamedFieldsInlineRef1 : [FieldInlineRef1 ^ 1..0xff]
+
+@mnemonic(life-carrot-garbo)
+data NamedFieldsInlineRef2 : [FieldInlineRef2 ^ 1..0xff]
+
+@mnemonic(edison-kinetic-village)
+data NamedFieldsLibRef : [FieldLibRef ^ 1..0xff]
+
+@mnemonic(chapter-zigzag-hunter)
+data NamedFieldsSemId  : [FieldSemId ^ 1..0xff]
+
+@mnemonic(wolf-taxi-druid)
+data NestedCase        : newType TypeFqn?
+                       | option ()
+                       | byteStr#16 ()
+                       | asciiStr TypeFqn?
+                       | uniStr ()
+                       | rStr (TypeFqn?, TypeFqn?, Sizing)
+
+@mnemonic(deliver-arrow-boxer)
+data Primitive         : U8
+
+@mnemonic(logic-absorb-hilton)
+data SemId             : [Byte ^ 32]
+
+@mnemonic(courage-alien-salon)
+data Sizing            : min U64, max U64
+
+@mnemonic(janet-lecture-taboo)
+data SymbolRef         : libName LibName
+                       , tyName TypeName
+                       , libId TypeLibId
+                       , semId SemId
+
+@mnemonic(alice-bicycle-europe)
+data SymbolicSys       : symbols Symbols, types TypeSystem
+
+@mnemonic(polaris-escape-santana)
+data Symbols           : libs {Dependency}, symbols {TypeSymbol ^ ..0xffffff}
+
+@mnemonic(extend-exile-fish)
+data TyInlineRef       : primitive Primitive
+                       | unicode ()
+                       | enum#3 EnumVariants
+                       | union UnionVariantsInlineRef
+                       | tuple UnnamedFieldsInlineRef
+                       | struct NamedFieldsInlineRef
+                       | array (InlineRef, U16)
+                       | list (InlineRef, Sizing)
+                       | set (InlineRef, Sizing)
+                       | map (InlineRef, InlineRef, Sizing)
+
+@mnemonic(morgan-freedom-indigo)
+data TyInlineRef1      : primitive Primitive
+                       | unicode ()
+                       | enum#3 EnumVariants
+                       | union UnionVariantsInlineRef1
+                       | tuple UnnamedFieldsInlineRef1
+                       | struct NamedFieldsInlineRef1
+                       | array (InlineRef1, U16)
+                       | list (InlineRef1, Sizing)
+                       | set (InlineRef1, Sizing)
+                       | map (InlineRef1, InlineRef1, Sizing)
+
+@mnemonic(veteran-culture-clarion)
+data TyInlineRef2      : primitive Primitive
+                       | unicode ()
+                       | enum#3 EnumVariants
+                       | union UnionVariantsInlineRef2
+                       | tuple UnnamedFieldsInlineRef2
+                       | struct NamedFieldsInlineRef2
+                       | array (InlineRef2, U16)
+                       | list (InlineRef2, Sizing)
+                       | set (InlineRef2, Sizing)
+                       | map (InlineRef2, InlineRef2, Sizing)
+
+@mnemonic(vega-beatles-right)
+data TyLibRef          : primitive Primitive
+                       | unicode ()
+                       | enum#3 EnumVariants
+                       | union UnionVariantsLibRef
+                       | tuple UnnamedFieldsLibRef
+                       | struct NamedFieldsLibRef
+                       | array (LibRef, U16)
+                       | list (LibRef, Sizing)
+                       | set (LibRef, Sizing)
+                       | map (LibRef, LibRef, Sizing)
+
+@mnemonic(armada-matrix-vodka)
+data TySemId           : primitive Primitive
+                       | unicode ()
+                       | enum#3 EnumVariants
+                       | union UnionVariantsSemId
+                       | tuple UnnamedFieldsSemId
+                       | struct NamedFieldsSemId
+                       | array (SemId, U16)
+                       | list (SemId, Sizing)
+                       | set (SemId, Sizing)
+                       | map (SemId, SemId, Sizing)
+
+@mnemonic(lemon-vampire-gloria)
+data TypeFqn           : lib LibName, name TypeName
+
+@mnemonic(iron-junior-jordan)
+data TypeInfo          : depth U32
+                       , ty TySemId
+                       , fqn TypeFqn?
+                       , item ItemCase?
+                       , nested [NestedCase ^ ..0xff]
+
+@mnemonic(consul-sharon-cabaret)
+data TypeLib           : name LibName
+                       , dependencies {Dependency ^ ..0xff}
+                       , externTypes {LibName -> ^ ..0xff {SemId -> TypeName}}
+                       , types {TypeName -> ^ 1.. TyLibRef}
+
+@mnemonic(torpedo-accent-silver)
+data TypeLibId         : [Byte ^ 32]
+
+@mnemonic(edgar-carol-mystery)
+data TypeName          : Std.AlphaCapsLodash, [Std.AlphaNumLodash ^ ..0x63]
+
+@mnemonic(sigma-miami-elite)
+data TypeSymbol        : id SemId, fqn TypeFqn?
+
+@mnemonic(chant-beach-junior)
+data TypeSysId         : [Byte ^ 32]
+
+@mnemonic(alias-address-shave)
+data TypeSystem        : {SemId -> ^ ..0xffffff TySemId}
+
+@mnemonic(ventura-siren-salon)
+data UnionVariantsInlineRef : {U8 -> ^ ..0xff VariantInfoInlineRef}
+
+@mnemonic(gram-tommy-people)
+data UnionVariantsInlineRef1 : {U8 -> ^ ..0xff VariantInfoInlineRef1}
+
+@mnemonic(dominic-screen-trilogy)
+data UnionVariantsInlineRef2 : {U8 -> ^ ..0xff VariantInfoInlineRef2}
+
+@mnemonic(rudolf-bison-stop)
+data UnionVariantsLibRef : {U8 -> ^ ..0xff VariantInfoLibRef}
+
+@mnemonic(maximum-twist-october)
+data UnionVariantsSemId : {U8 -> ^ ..0xff VariantInfoSemId}
+
+@mnemonic(boris-indigo-prime)
+data UnnamedFieldsInlineRef : [InlineRef ^ 1..0xff]
+
+@mnemonic(griffin-frozen-melody)
+data UnnamedFieldsInlineRef1 : [InlineRef1 ^ 1..0xff]
+
+@mnemonic(jordan-baby-spiral)
+data UnnamedFieldsInlineRef2 : [InlineRef2 ^ 1..0xff]
+
+@mnemonic(bread-honey-modest)
+data UnnamedFieldsLibRef : [LibRef ^ 1..0xff]
+
+@mnemonic(oxford-dallas-capitan)
+data UnnamedFieldsSemId : [SemId ^ 1..0xff]
+
+@mnemonic(magic-holiday-aztec)
+data Variant           : name VariantName, tag U8
+
+@mnemonic(icon-menu-fragile)
+data VariantInfoInlineRef : name VariantName, ty InlineRef
+
+@mnemonic(profile-castle-graph)
+data VariantInfoInlineRef1 : name VariantName, ty InlineRef1
+
+@mnemonic(venus-lotus-abraham)
+data VariantInfoInlineRef2 : name VariantName, ty InlineRef2
+
+@mnemonic(buffalo-blue-gossip)
+data VariantInfoLibRef : name VariantName, ty LibRef
+
+@mnemonic(radius-cloud-accent)
+data VariantInfoSemId  : name VariantName, ty SemId
+
+@mnemonic(theory-austin-before)
+data VariantName       : Std.AlphaSmallLodash, [Std.AlphaNumLodash ^ ..0x63]
+
+

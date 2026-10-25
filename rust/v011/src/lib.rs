@@ -255,7 +255,14 @@ where ValidConsignment<T>: Import {
             cells.extend(a.map(|a| json!({"seal": a.seal.to_string(), "value": a.state.value().to_string(), "witness": witness(a.witness), "spent": is_spent(&a.seal)})));
         }
         if let Ok(a) = data.data(name.clone(), FilterIncludeAll) {
-            cells.extend(a.map(|a| json!({"seal": a.seal.to_string(), "value": a.state.to_string(), "witness": witness(a.witness), "spent": is_spent(&a.seal)})));
+            // UDA-style data is a strict-encoded Allocation: show it as fraction@index.
+            let value = |d: &rgbstd::RevealedData| {
+                use strict_encoding::StrictDeserialize;
+                rgbinvoice::Allocation::from_strict_serialized(d.clone().into())
+                    .map(|a| a.to_string())
+                    .unwrap_or_else(|_| d.to_string())
+            };
+            cells.extend(a.map(|a| json!({"seal": a.seal.to_string(), "value": value(&a.state), "witness": witness(a.witness), "spent": is_spent(&a.seal)})));
         }
         if let Ok(a) = data.rights(name.clone(), FilterIncludeAll) {
             cells.extend(a.map(|a| json!({"seal": a.seal.to_string(), "value": "right", "witness": witness(a.witness), "spent": is_spent(&a.seal)})));

@@ -15,11 +15,13 @@ Apache-2.0 licensed, including:
 Exact versions and the full dependency list are in rust/v011/Cargo.lock and
 rust/v012/Cargo.lock. Each crate's license applies to its compiled code.
 
-rust/patches/strict_encoding-2.9.1 is LNP/BP's strict_encoding 2.9.1 (Apache-2.0) with
-one change, described in its RGBJS-PATCH.md; wasm/v012 is built with it.
+rust/patches/strict_encoding-2.9.1 and rust/patches/strict_types-2.9.1 are LNP/BP's
+crates (Apache-2.0) with one change each, described in their RGBJS-PATCH.md;
+wasm/v012 is built with them.
 
 rust/v012/issuers/RGB20-FNA.issuer is copied from RGB-WG/rgb v0.12.0-rc.3
-examples/ (Apache-2.0) and compiled into wasm/v012 as a trusted issuer.
+examples/; the RGB21 and RGB25 issuers from pandora-prime/rgb-issuers at
+49b4048 (all Apache-2.0). They are compiled into wasm/v012 as trusted issuers.
 
 Test vectors in test/vectors/ that come from upstream tests or fixtures say
 where they come from in the README next to them.

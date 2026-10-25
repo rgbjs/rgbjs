@@ -166,7 +166,7 @@ test('v0.12 issuer file parses to the ID consignments report', () => {
   const issuer = v012.parseIssuer(file('../rust/v012/issuers/RGB20-FNA.issuer'))
   assert.equal(issuer.id, validateConsignment(token).issuer.id)
   assert.equal(issuer.signed, false)
-  assert.deepEqual(v012.knownIssuers().map(i => i.id), [issuer.id])
+  assert.ok(v012.knownIssuers().map(i => i.id).includes(issuer.id))
   assert.throws(() => v012.parseIssuer(token), /not an RGB v0.12 issuer/)
 })
 

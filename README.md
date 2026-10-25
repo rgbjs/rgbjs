@@ -63,17 +63,18 @@ Both lines run the reference validator. **Witness transactions aren't looked up 
 **v0.11** runs `rgb-consensus`, with two limits:
 
 - **Witnesses come from the consignment.** rgbjs uses the transactions carried in it.
+- **Tested schemas:** NIA, CFA, UDA and IFA consignments are in the test vectors (contracts and transfers); PFA is trusted but has no vector yet.
 - **Only the standard schemas are trusted:** NIA, CFA, UDA, IFA and PFA from rgb-schemas 0.11.1 (`v011.knownSchemas()`). Other schemas are rejected. rgbjs is also stricter than rgb-consensus 0.11.1 here: each type in the consignment must match the trusted definition exactly, names included. Upstream compares types with a check that ignores field and variant names.
 
 **v0.12** evaluates every operation into an in-memory contract, as `rgb accept -u` does. The contract ID commits to the codex and genesis, but not to the semantics (APIs, types, libraries) that say what the state means. Those come with the consignment, so check them:
 
-- `issuer.trusted` is true only when the semantics match an issuer in `v012.knownIssuers()` exactly. That is currently the RGB20 FNA issuer from the RGB-WG examples. For any other issuer, compare `issuer.id` with `v012.parseIssuer(file).id` for an issuer file you trust. The comparison is stricter than the issuer ID: it also covers type names, which the ID's checksum doesn't.
+- `issuer.trusted` is true only when the semantics match an issuer in `v012.knownIssuers()` exactly. Those are RGB20 FNA (RGB-WG examples), RGB21 UniqueNFT and RGB25 UniquelyFungible (pandora-prime/rgb-issuers), all of which have test vectors. For any other issuer, compare `issuer.id` with `v012.parseIssuer(file).id` for an issuer file you trust. The comparison is stricter than the issuer ID: it also covers type names, which the ID's checksum doesn't.
 - Issuer signatures aren't checked. `signed` says whether one is present.
 - rgbjs also rejects a consignment whose genesis names a different codex from the one the contract uses. Upstream doesn't check this field.
 
 ## Known issues
 
-- `wasm/v012` is built with a patched `strict_encoding` 2.9.1 (`rust/patches/`). Upstream pre-allocates from untrusted length prefixes, so one corrupted byte in a consignment can request ~4.4 GB and abort the wasm. The patch caps pre-allocation as rgb-protocol's `rgb-strict-encoding` 1.0.5 already does for v0.11. The tests check that no corrupted consignment traps.
+- `wasm/v012` is built with patched copies of `strict_encoding` 2.9.1 and `strict_types` 2.9.1 (`rust/patches/`). Both pre-allocate memory from lengths read out of the data. One corrupted byte in a consignment can then request ~4.4 GB, or overflow capacity and panic. The pinned `rgb-wallet` 0.12.0-rc.3 crashes on `rgb accept` of such a file. The patches cap pre-allocation, as rgb-protocol's `rgb-strict-encoding` 1.0.5 already does for v0.11. The tests check that no corrupted consignment traps.
 
 - v0.12 invoices print as `contract:tb@contract:<id>/...` instead of `contract:tb@<id>/...` ([AluVM/sonic#27](https://github.com/AluVM/sonic/issues/27)). The cause is that `CallScope`'s `Display` doesn't pass the `{:-}` flag on to `ContractId`. Both forms parse to the same invoice.
 - The 0.11.2 consignment format (rgb-api 0.11.2-rc.1) can't be read. 0.11.1 is pinned until 0.11.2 is final.

@@ -34,3 +34,5 @@ panic = "abort"
 [patch.crates-io]
 # Caps decoder pre-allocation; see rust/patches/strict_encoding-2.9.1/RGBJS-PATCH.md.
 strict_encoding = { path = "../patches/strict_encoding-2.9.1" }
+# Caps value-decoder pre-allocation; see rust/patches/strict_types-2.9.1/RGBJS-PATCH.md.
+strict_types = { path = "../patches/strict_types-2.9.1" }

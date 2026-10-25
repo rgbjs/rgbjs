@@ -1,6 +1,6 @@
 //! Makes a v0.12 transfer consignment without any indexer or network.
 //!
-//!   gen-v012 <data dir copied from RGB-WG/rgb v0.12.0-rc.3 examples/data> <DemoToken.yaml> <out dir>
+//!   gen-v012 <data dir copied from RGB-WG/rgb v0.12.0-rc.3 examples/data> <params.yaml> <out dir> [name] [invoice value]
 //!
 //! Alice's demo wallet gets a made-up funding transaction (never broadcast),
 //! a contract is issued on its output, and Alice pays Bob 10 units. The
@@ -24,8 +24,8 @@ use bpstd::{
     UnsignedTx, Witness, Derive,
 };
 use rgb::invoice::RgbInvoice;
-use rgb::popls::bp::RgbWallet;
-use rgb::{Consensus, ContractId, Contracts, CreateParams, EitherSeal, WitnessStatus};
+use rgb::popls::bp::{PaymentScript, RgbWallet};
+use rgb::{AuthToken, Consensus, ContractId, Contracts, CreateParams, EitherSeal, WitnessStatus};
 use rgb_persist_fs::StockpileDir;
 use rgbp::resolvers::{Resolver, ResolverError};
 use rgbp::{CoinselectStrategy, FileHolder, Owner, OwnerProvider, RgbRuntime, UtxoSet};
@@ -52,8 +52,15 @@ impl Resolver for Offline {
 }
 
 fn main() {
-    let mut args = std::env::args().skip(1).map(PathBuf::from);
-    let (data, params, out) = (args.next().unwrap(), args.next().unwrap(), args.next().unwrap());
+    let mut args = std::env::args().skip(1);
+    let usage = "gen-v012 <data dir> <params.yaml> <out dir> [name] [invoice value]";
+    let (data, params, out) = (
+        PathBuf::from(args.next().expect(usage)),
+        PathBuf::from(args.next().expect(usage)),
+        PathBuf::from(args.next().expect(usage)),
+    );
+    let name = args.next().unwrap_or_else(|| s!("TransferDemo"));
+    let value = args.next().unwrap_or_else(|| s!("10"));
     let dir = data.join("bitcoin.testnet");
 
     let mut holder = FileHolder::load(dir.join("alice.wallet")).expect("alice wallet");
@@ -82,7 +89,7 @@ fn main() {
 
     let mut params: CreateParams<Outpoint> =
         serde_yaml::from_reader(File::open(params).unwrap()).expect("DemoToken.yaml");
-    params.name = "TransferDemo".into();
+    params.name = name.parse().expect("contract name");
     for owned in &mut params.owned {
         owned.state.seal = EitherSeal::Alt(funding_out);
     }
@@ -95,17 +102,34 @@ fn main() {
 
     let contract_id: ContractId = runtime.issue(params).expect("issue");
     println!("funding {funding_out}\ncontract {contract_id}");
-    runtime.contracts.export_to_file(out.join("TransferDemo.contract.rgb"), contract_id).unwrap();
+    runtime.contracts.export_to_file(out.join(format!("{name}.contract.rgb")), contract_id).unwrap();
 
     let auth = std::env::var("BOB_AUTH").expect("BOB_AUTH=<at:... from `rgb invoice --seal-only`>");
-    let invoice = format!("contract:tb@{contract_id:-}/10@{auth}/");
-    let invoice = RgbInvoice::<ContractId>::from_str(&invoice).expect("invoice");
-    let (psbt, payment) = runtime
-        .pay_invoice(&invoice, CoinselectStrategy::Aggregate, TxParams::with(Sats::from_sats(1000u64)), None)
-        .expect("pay");
+    let (psbt, payment) = if value.starts_with('{') {
+        // A struct value (an NFT allocation) can't go in an invoice URI, whose
+        // value is a number or a string. Build the payment script that
+        // `rgb script` would emit instead: spend the genesis cell and assign
+        // `value` to Bob's auth token, then run it as `rgb exec` does.
+        let opid = runtime.contracts.contract_articles(contract_id).genesis_opid();
+        let script = format!(
+            "- contractId: {contract_id}\n  method: transfer\n  reading: []\n  using:\n  - addr: {opid}:0\n    outpoint: {funding_out}\n    satisfaction: null\n  global: []\n  owned:\n  - name: balance\n    seal: {auth}\n    data: {value}\n"
+        );
+        let script: PaymentScript = serde_yaml::from_str(&script).expect("payment script");
+        let (psbt, mut payment) = runtime
+            .transfer(script, TxParams::with(Sats::from_sats(1000u64)))
+            .expect("transfer");
+        payment.terminals.insert(AuthToken::from_str(&auth).expect("auth token"));
+        (psbt, payment)
+    } else {
+        let invoice = format!("contract:tb@{contract_id:-}/{value}@{auth}/");
+        let invoice = RgbInvoice::<ContractId>::from_str(&invoice).expect("invoice");
+        runtime
+            .pay_invoice(&invoice, CoinselectStrategy::Aggregate, TxParams::with(Sats::from_sats(1000u64)), None)
+            .expect("pay")
+    };
     println!("witness {}", psbt.txid());
     runtime
         .contracts
-        .consign_to_file(out.join("TransferDemo.transfer.rgb"), contract_id, payment.terminals)
+        .consign_to_file(out.join(format!("{name}.transfer.rgb")), contract_id, payment.terminals)
         .unwrap();
 }

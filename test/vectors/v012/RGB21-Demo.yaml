@@ -1,0 +1,36 @@
+consensus: bitcoin
+testnet: true
+issuer:
+  codexId: 1T9uRsVB-_A8owmV-mv9SMiF-vgFFjN2-kxd9AZz-lpU8K1A
+  version: 0
+  checksum: FtU80Q
+name: NftDemo
+method: issue
+timestamp: "2025-06-03T12:00:00-02:00"
+
+global:
+  - name: ticker
+    verified: NDEMO
+  - name: name
+    verified: Demo NFT
+  - name: maxFractions
+    verified: 1
+  - name: token
+    verified: 1
+    unverified:
+      name: Demo token one
+      embedded:
+        mime:
+          type: image
+          subtype: png
+          charset: ~
+        data: "89504e47"
+      external: ~
+      reserves: ~
+
+owned:
+  - name: balance
+    seal: b7116550736fbe5d3e234d0141c6bc8d1825f94da78514a3cede5674e9a5eae9:1
+    data:
+      tokenNo: 1
+      fractions: 1

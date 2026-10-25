@@ -77,8 +77,14 @@ const CONSIGN_MAGIC: &[u8; 8] = b"RGBCNSGN";
 const ISSUER_MAGIC: &[u8; 8] = b"ISSUER  ";
 
 /// Issuers whose semantics (APIs, types, libraries) rgbjs trusts out of the box:
-/// the RGB20 FNA issuer shipped in RGB-WG/rgb v0.12.0-rc.3 `examples/`.
-const KNOWN_ISSUERS: &[&[u8]] = &[include_bytes!("../issuers/RGB20-FNA.issuer")];
+/// RGB20 FNA from RGB-WG/rgb v0.12.0-rc.3 `examples/`, and RGB21 UniqueNFT and
+/// RGB25 UniquelyFungible from pandora-prime/rgb-issuers at 49b4048 (all by
+/// the same developer, dns:pandoraprime.ch; Apache-2.0).
+const KNOWN_ISSUERS: &[&[u8]] = &[
+    include_bytes!("../issuers/RGB20-FNA.issuer"),
+    include_bytes!("../issuers/RGB21-UniqueNFT-v0-FtU80Q.issuer"),
+    include_bytes!("../issuers/RGB25-UniquelyFungible-v0-aiRB3w.issuer"),
+];
 
 fn issuer_id(codex: &hypersonic::Codex, semantics: &hypersonic::Semantics) -> hypersonic::IssuerId {
     hypersonic::IssuerId {
@@ -222,6 +228,17 @@ pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
                     (name.to_string(), json!(atoms.iter().map(|a| a.data.verified.to_string()).collect::<Vec<_>>()))
                 })
                 .collect();
+            // Unverified parts of global state (e.g. an NFT's name and image),
+            // which the codex doesn't check: shown apart so they aren't mistaken
+            // for verified state.
+            let unverified: serde_json::Map<_, _> = state
+                .immutable
+                .iter()
+                .filter_map(|(name, atoms)| {
+                    let vals: Vec<_> = atoms.iter().filter_map(|a| a.data.unverified.as_ref().map(|u| u.to_string())).collect();
+                    (!vals.is_empty()).then(|| (name.to_string(), json!(vals)))
+                })
+                .collect();
             let owned: serde_json::Map<_, _> = state
                 .owned
                 .iter()
@@ -242,7 +259,7 @@ pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
                 state.aggregated.iter().map(|(name, v)| (name.to_string(), json!(v.to_string()))).collect();
             obj.insert("valid".into(), json!(true));
             obj.insert("operations".into(), json!(contract.operations().count()));
-            obj.insert("state".into(), json!({"global": global, "owned": owned, "aggregated": aggregated}));
+            obj.insert("state".into(), json!({"global": global, "unverified": unverified, "owned": owned, "aggregated": aggregated}));
             obj.insert("witnesses".into(), json!(witnesses));
         }
         Err(err) => {
@@ -270,6 +287,8 @@ mod tests {
         println!("{}", validate_consignment(&bytes).unwrap());
     }
 }
+
+
 
 
 

@@ -1,0 +1,428 @@
+{-
+  Id: stl:gonrTQ8L-cFSvdEs-F6MHXnS-MDplxjy-8_lZ5j5-_lY8MWo#delete-roman-hair
+  Name: Std
+  Version: 0.1.0
+  Description: Strict types standard library
+  Author: Dr Maxim Orlovsky <orlovsky@ubideco.org>
+  Copyright (C) 2023-2024 UBIDECO Institute. All rights reserved.
+  License: Apache-2.0
+-}
+
+@context
+typelib Std
+
+-- no dependencies
+
+@mnemonic(citizen-bicycle-stretch)
+data Alpha             : _A#65 | _B | _C | _D
+                       | _E | _F | _G | _H
+                       | _I | _J | _K | _L
+                       | _M | _N | _O | _P
+                       | _Q | _R | _S | _T
+                       | _U | _V | _W | _X
+                       | _Y | _Z | a#97 | b
+                       | c | d | e | f
+                       | g | h | i | j
+                       | k | l | m | n
+                       | o | p | q | r
+                       | s | t | u | v
+                       | w | x | y | z
+
+
+@mnemonic(picnic-soprano-aurora)
+data AlphaCaps         : _A#65 | _B | _C | _D
+                       | _E | _F | _G | _H
+                       | _I | _J | _K | _L
+                       | _M | _N | _O | _P
+                       | _Q | _R | _S | _T
+                       | _U | _V | _W | _X
+                       | _Y | _Z
+
+
+@mnemonic(pilot-finland-lotus)
+data AlphaCapsDash     : dash#45 | _A#65 | _B | _C
+                       | _D | _E | _F | _G
+                       | _H | _I | _J | _K
+                       | _L | _M | _N | _O
+                       | _P | _Q | _R | _S
+                       | _T | _U | _V | _W
+                       | _X | _Y | _Z
+
+
+@mnemonic(ferrari-scroll-rival)
+data AlphaCapsDot      : dot#46 | _A#65 | _B | _C
+                       | _D | _E | _F | _G
+                       | _H | _I | _J | _K
+                       | _L | _M | _N | _O
+                       | _P | _Q | _R | _S
+                       | _T | _U | _V | _W
+                       | _X | _Y | _Z
+
+
+@mnemonic(duet-hammer-labor)
+data AlphaCapsLodash   : _A#65 | _B | _C | _D
+                       | _E | _F | _G | _H
+                       | _I | _J | _K | _L
+                       | _M | _N | _O | _P
+                       | _Q | _R | _S | _T
+                       | _U | _V | _W | _X
+                       | _Y | _Z | lodash#95
+
+
+@mnemonic(aladdin-zebra-marble)
+data AlphaCapsNum      : zero#48 | one | two | three
+                       | four | five | six | seven
+                       | eight | nine | _A#65 | _B
+                       | _C | _D | _E | _F
+                       | _G | _H | _I | _J
+                       | _K | _L | _M | _N
+                       | _O | _P | _Q | _R
+                       | _S | _T | _U | _V
+                       | _W | _X | _Y | _Z
+
+
+@mnemonic(modem-parker-content)
+data AlphaDash         : dash#45 | _A#65 | _B | _C
+                       | _D | _E | _F | _G
+                       | _H | _I | _J | _K
+                       | _L | _M | _N | _O
+                       | _P | _Q | _R | _S
+                       | _T | _U | _V | _W
+                       | _X | _Y | _Z | a#97
+                       | b | c | d | e
+                       | f | g | h | i
+                       | j | k | l | m
+                       | n | o | p | q
+                       | r | s | t | u
+                       | v | w | x | y
+                       | z
+
+
+@mnemonic(story-sensor-voice)
+data AlphaDot          : dot#46 | _A#65 | _B | _C
+                       | _D | _E | _F | _G
+                       | _H | _I | _J | _K
+                       | _L | _M | _N | _O
+                       | _P | _Q | _R | _S
+                       | _T | _U | _V | _W
+                       | _X | _Y | _Z | a#97
+                       | b | c | d | e
+                       | f | g | h | i
+                       | j | k | l | m
+                       | n | o | p | q
+                       | r | s | t | u
+                       | v | w | x | y
+                       | z
+
+
+@mnemonic(halt-alamo-mimic)
+data AlphaLodash       : _A#65 | _B | _C | _D
+                       | _E | _F | _G | _H
+                       | _I | _J | _K | _L
+                       | _M | _N | _O | _P
+                       | _Q | _R | _S | _T
+                       | _U | _V | _W | _X
+                       | _Y | _Z | lodash#95 | a#97
+                       | b | c | d | e
+                       | f | g | h | i
+                       | j | k | l | m
+                       | n | o | p | q
+                       | r | s | t | u
+                       | v | w | x | y
+                       | z
+
+
+@mnemonic(window-tractor-alamo)
+data AlphaNum          : zero#48 | one | two | three
+                       | four | five | six | seven
+                       | eight | nine | _A#65 | _B
+                       | _C | _D | _E | _F
+                       | _G | _H | _I | _J
+                       | _K | _L | _M | _N
+                       | _O | _P | _Q | _R
+                       | _S | _T | _U | _V
+                       | _W | _X | _Y | _Z
+                       | a#97 | b | c | d
+                       | e | f | g | h
+                       | i | j | k | l
+                       | m | n | o | p
+                       | q | r | s | t
+                       | u | v | w | x
+                       | y | z
+
+
+@mnemonic(sponsor-snake-nice)
+data AlphaNumDash      : dash#45 | zero#48 | one | two
+                       | three | four | five | six
+                       | seven | eight | nine | _A#65
+                       | _B | _C | _D | _E
+                       | _F | _G | _H | _I
+                       | _J | _K | _L | _M
+                       | _N | _O | _P | _Q
+                       | _R | _S | _T | _U
+                       | _V | _W | _X | _Y
+                       | _Z | a#97 | b | c
+                       | d | e | f | g
+                       | h | i | j | k
+                       | l | m | n | o
+                       | p | q | r | s
+                       | t | u | v | w
+                       | x | y | z
+
+
+@mnemonic(bambino-gorilla-brave)
+data AlphaNumDot       : dot#46 | zero#48 | one | two
+                       | three | four | five | six
+                       | seven | eight | nine | _A#65
+                       | _B | _C | _D | _E
+                       | _F | _G | _H | _I
+                       | _J | _K | _L | _M
+                       | _N | _O | _P | _Q
+                       | _R | _S | _T | _U
+                       | _V | _W | _X | _Y
+                       | _Z | a#97 | b | c
+                       | d | e | f | g
+                       | h | i | j | k
+                       | l | m | n | o
+                       | p | q | r | s
+                       | t | u | v | w
+                       | x | y | z
+
+
+@mnemonic(percent-bingo-caesar)
+data AlphaNumLodash    : zero#48 | one | two | three
+                       | four | five | six | seven
+                       | eight | nine | _A#65 | _B
+                       | _C | _D | _E | _F
+                       | _G | _H | _I | _J
+                       | _K | _L | _M | _N
+                       | _O | _P | _Q | _R
+                       | _S | _T | _U | _V
+                       | _W | _X | _Y | _Z
+                       | lodash#95 | a#97 | b | c
+                       | d | e | f | g
+                       | h | i | j | k
+                       | l | m | n | o
+                       | p | q | r | s
+                       | t | u | v | w
+                       | x | y | z
+
+
+@mnemonic(magnum-martin-soviet)
+data AlphaSmall        : a#97 | b | c | d
+                       | e | f | g | h
+                       | i | j | k | l
+                       | m | n | o | p
+                       | q | r | s | t
+                       | u | v | w | x
+                       | y | z
+
+
+@mnemonic(sheriff-monaco-watch)
+data AlphaSmallDash    : dash#45 | a#97 | b | c
+                       | d | e | f | g
+                       | h | i | j | k
+                       | l | m | n | o
+                       | p | q | r | s
+                       | t | u | v | w
+                       | x | y | z
+
+
+@mnemonic(ford-radius-imitate)
+data AlphaSmallDot     : dot#46 | a#97 | b | c
+                       | d | e | f | g
+                       | h | i | j | k
+                       | l | m | n | o
+                       | p | q | r | s
+                       | t | u | v | w
+                       | x | y | z
+
+
+@mnemonic(pioneer-eagle-spell)
+data AlphaSmallLodash  : lodash#95 | a#97 | b | c
+                       | d | e | f | g
+                       | h | i | j | k
+                       | l | m | n | o
+                       | p | q | r | s
+                       | t | u | v | w
+                       | x | y | z
+
+
+@mnemonic(palma-program-parole)
+data Ascii             : nul | soh | stx | etx
+                       | eot | enq | ack | bel
+                       | bs | ht | lf | vt
+                       | ff | cr | so | si
+                       | dle | dc1 | dc2 | dc3
+                       | dc4 | nack | syn | etb
+                       | can | em | sub | esc
+                       | fs | gs | rs | us
+                       | space | excl | quotes | hash
+                       | dollar | percent | ampersand | apostrophe
+                       | bracketL | bracketR | asterisk | plus
+                       | comma | minus | dot | slash
+                       | zero | one | two | three
+                       | four | five | six | seven
+                       | eight | nine | colon | semiColon
+                       | less | equal | greater | question
+                       | at | _A | _B | _C
+                       | _D | _E | _F | _G
+                       | _H | _I | _J | _K
+                       | _L | _M | _N | _O
+                       | _P | _Q | _R | _S
+                       | _T | _U | _V | _W
+                       | _X | _Y | _Z | sqBracketL
+                       | backSlash | sqBracketR | caret | lodash
+                       | backtick | a | b | c
+                       | d | e | f | g
+                       | h | i | j | k
+                       | l | m | n | o
+                       | p | q | r | s
+                       | t | u | v | w
+                       | x | y | z | cBracketL
+                       | pipe | cBracketR | tilde | del
+
+
+@mnemonic(ultra-sunset-format)
+data AsciiPrintable    : space#32 | excl | quotes | hash
+                       | dollar | percent | ampersand | apostrophe
+                       | bracketL | bracketR | asterisk | plus
+                       | comma | minus | dot | slash
+                       | zero | one | two | three
+                       | four | five | six | seven
+                       | eight | nine | colon | semiColon
+                       | less | equal | greater | question
+                       | at | _A | _B | _C
+                       | _D | _E | _F | _G
+                       | _H | _I | _J | _K
+                       | _L | _M | _N | _O
+                       | _P | _Q | _R | _S
+                       | _T | _U | _V | _W
+                       | _X | _Y | _Z | sqBracketL
+                       | backSlash | sqBracketR | caret | lodash
+                       | backtick | a | b | c
+                       | d | e | f | g
+                       | h | i | j | k
+                       | l | m | n | o
+                       | p | q | r | s
+                       | t | u | v | w
+                       | x | y | z | cBracketL
+                       | pipe | cBracketR | tilde
+
+
+@mnemonic(oxygen-complex-duet)
+data Bool              : false | true
+
+
+@mnemonic(emotion-sweet-rabbit)
+data Dec               : zero#48 | one | two | three
+                       | four | five | six | seven
+                       | eight | nine
+
+
+@mnemonic(cement-capital-belgium)
+data DecDot            : dot#46 | zero#48 | one | two
+                       | three | four | five | six
+                       | seven | eight | nine
+
+
+@mnemonic(canada-major-convert)
+data HexDecCaps        : zero#48 | one | two | three
+                       | four | five | six | seven
+                       | eight | nine | ten#65 | eleven
+                       | twelve | thirteen | fourteen | fifteen
+
+
+@mnemonic(crater-plasma-diagram)
+data HexDecSmall       : zero#48 | one | two | three
+                       | four | five | six | seven
+                       | eight | nine | ten#97 | eleven
+                       | twelve | thirteen | fourteen | fifteen
+
+
+@mnemonic(concept-inside-samuel)
+data U1                : _0 | _1
+
+
+@mnemonic(sonata-nickel-travel)
+data U2                : _0 | _1 | _2 | _3
+
+
+@mnemonic(burma-travel-diet)
+data U3                : _0 | _1 | _2 | _3
+                       | _4 | _5 | _6 | _7
+
+
+@mnemonic(halt-crack-kayak)
+data U4                : _0 | _1 | _2 | _3
+                       | _4 | _5 | _6 | _7
+                       | _8 | _9 | _10 | _11
+                       | _12 | _13 | _14 | _15
+
+
+@mnemonic(orbit-graph-sonic)
+data U5                : _0 | _1 | _2 | _3
+                       | _4 | _5 | _6 | _7
+                       | _8 | _9 | _10 | _11
+                       | _12 | _13 | _14 | _15
+                       | _16 | _17 | _18 | _19
+                       | _20 | _21 | _22 | _23
+                       | _24 | _25 | _26 | _27
+                       | _28 | _29 | _30 | _31
+
+
+@mnemonic(jupiter-brenda-harlem)
+data U6                : _0 | _1 | _2 | _3
+                       | _4 | _5 | _6 | _7
+                       | _8 | _9 | _10 | _11
+                       | _12 | _13 | _14 | _15
+                       | _16 | _17 | _18 | _19
+                       | _20 | _21 | _22 | _23
+                       | _24 | _25 | _26 | _27
+                       | _28 | _29 | _30 | _31
+                       | _32 | _33 | _34 | _35
+                       | _36 | _37 | _38 | _39
+                       | _40 | _41 | _42 | _43
+                       | _44 | _45 | _46 | _47
+                       | _48 | _49 | _50 | _51
+                       | _52 | _53 | _54 | _55
+                       | _56 | _57 | _58 | _59
+                       | _60 | _61 | _62 | _63
+
+
+@mnemonic(arena-pixel-quest)
+data U7                : _0 | _1 | _2 | _3
+                       | _4 | _5 | _6 | _7
+                       | _8 | _9 | _10 | _11
+                       | _12 | _13 | _14 | _15
+                       | _16 | _17 | _18 | _19
+                       | _20 | _21 | _22 | _23
+                       | _24 | _25 | _26 | _27
+                       | _28 | _29 | _30 | _31
+                       | _32 | _33 | _34 | _35
+                       | _36 | _37 | _38 | _39
+                       | _40 | _41 | _42 | _43
+                       | _44 | _45 | _46 | _47
+                       | _48 | _49 | _50 | _51
+                       | _52 | _53 | _54 | _55
+                       | _56 | _57 | _58 | _59
+                       | _60 | _61 | _62 | _63
+                       | _64 | _65 | _66 | _67
+                       | _68 | _69 | _70 | _71
+                       | _72 | _73 | _74 | _75
+                       | _76 | _77 | _78 | _79
+                       | _80 | _81 | _82 | _83
+                       | _84 | _85 | _86 | _87
+                       | _88 | _89 | _90 | _91
+                       | _92 | _93 | _94 | _95
+                       | _96 | _97 | _98 | _99
+                       | _100 | _101 | _102 | _103
+                       | _104 | _105 | _106 | _107
+                       | _108 | _109 | _110 | _111
+                       | _112 | _113 | _114 | _115
+                       | _116 | _117 | _118 | _119
+                       | _120 | _121 | _122 | _123
+                       | _124 | _125 | _126 | _127
+
+
+
