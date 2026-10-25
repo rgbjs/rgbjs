@@ -126,3 +126,17 @@ test('v0.12 invoice: parses back with the contract, value and auth token', () =>
   assert.notEqual(v012.createInvoice({ contractId, value: 25, outpoint: OUT_B, noiseSeed: SEED, nonce: 4 }).authToken, created.authToken)
   assert.throws(() => v012.createInvoice({ contractId, value: 'a/b', outpoint: OUT_B, noiseSeed: SEED }), /plain string/)
 })
+
+test('created-contract vectors are reproduced byte for byte', async () => {
+  const { readFileSync } = await import('node:fs')
+  const { SEED, v011Created, v012Created } = await import('./created-params.js')
+  const file = p => new Uint8Array(readFileSync(new URL(`./vectors/${p}`, import.meta.url)))
+  for (const [k, p] of Object.entries(v011Created)) assert.deepEqual(v011.issueContract(p), file(`v011/created-${k}.contract.rgb`), k)
+  for (const [k, p] of Object.entries(v012Created)) {
+    const bytes = v012.issueContract(p, SEED)
+    assert.deepEqual(bytes, file(`v012/created-${k}.contract.rgb`), k)
+    const r = validateConsignment(bytes)
+    assert.equal(r.valid, true, r.error)
+    assert.equal(r.issuer.trusted, true, k)
+  }
+})

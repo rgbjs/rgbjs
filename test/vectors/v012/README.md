@@ -11,3 +11,4 @@ The trusted issuer `rust/v012/issuers/RGB20-FNA.issuer` is copied from RGB-WG/rg
 - `RGB25-Demo.yaml`, `RGB21-Demo.yaml`: the issue parameters, from the pandora-prime/rgb-issuers templates adapted to rc.3. The issuer field is `checksum:` rather than `api:`, the NFT allocation fields are `tokenNo`/`fractions` (what the compiled issuer declares, not the template's `tokenIndex`/`fraction`), and the optional token fields are explicit `~`.
 
 The RGB21 and RGB25 issuers in `rust/v012/issuers/` are from pandora-prime/rgb-issuers at commit 49b4048 (Apache-2.0), the same developer (`dns:pandoraprime.ch`) as the RGB20 FNA issuer.
+- `created-{fna,ufa}.contract.rgb`: contracts made by rgbjs's own `v012.issueContract` (RGB20 FNA and RGB25 UFA) from the fixed parameters and noise seed in `test/created-params.js`. The pinned `rgb-wallet` accepts both (`accept -u`, exit 0).
