@@ -1,12 +1,23 @@
 {
   "name": "rgbjs",
   "version": "0.0.1",
-  "description": "rgbjs",
-  "license": "ISC",
+  "description": "JavaScript for both RGB lines (v0.11 and v0.12), built from each line's Rust crates compiled to WebAssembly",
+  "license": "MIT",
   "author": "Melvin Carvalho",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./v011": "./src/v011.js",
+    "./v012": "./src/v012.js"
+  },
+  "files": ["src", "wasm", "README.md", "LICENSE", "NOTICE"],
+  "engines": { "node": ">=18" },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  }
+    "build": "scripts/build.sh",
+    "test": "node --test test/*.test.js"
+  },
+  "repository": { "type": "git", "url": "git+https://github.com/rgbjs/rgbjs.git" },
+  "homepage": "https://rgbjs.com",
+  "keywords": ["rgb", "bitcoin", "client-side-validation", "wasm"]
 }

@@ -1,0 +1,53 @@
+{
+  "line": "v0.12",
+  "vectors": [
+    {
+      "input": "contract:tb@qKpMlzOe-Imn6ysZ-a8JjG2p-WHWvaFm-BWMiPi3-_LvnfRw/10@at:5WIb5EMY-RCLbO3Wq-hGdddRP4-IeCQzP1y-S5H_UKzd-ViYmlA/",
+      "expect": "ok",
+      "source": "sonic-callreq@0.12.0 src/uri.rs:327",
+      "roundtrip": true
+    },
+    {
+      "input": "contract:tb@qKpMlzOe-Imn6ysZ-a8JjG2p-WHWvaFm-BWMiPi3-_LvnfRw/RGB20/10@at:5WIb5EMY-RCLbO3Wq-hGdddRP4-IeCQzP1y-S5H_UKzd-ViYmlA/",
+      "expect": "ok",
+      "source": "sonic-callreq@0.12.0 src/uri.rs:348",
+      "roundtrip": true
+    },
+    {
+      "input": "contract:tb@qKpMlzOe-Imn6ysZ-a8JjG2p-WHWvaFm-BWMiPi3-_LvnfRw/RGB20/transfer/10@at:5WIb5EMY-RCLbO3Wq-hGdddRP4-IeCQzP1y-S5H_UKzd-ViYmlA/",
+      "expect": "ok",
+      "source": "sonic-callreq@0.12.0 src/uri.rs:369",
+      "roundtrip": true
+    },
+    {
+      "input": "contract:tb@qKpMlzOe-Imn6ysZ-a8JjG2p-WHWvaFm-BWMiPi3-_LvnfRw/RGB20/transfer/amount/10@at:5WIb5EMY-RCLbO3Wq-hGdddRP4-IeCQzP1y-S5H_UKzd-ViYmlA/",
+      "expect": "ok",
+      "source": "sonic-callreq@0.12.0 src/uri.rs:390",
+      "roundtrip": true
+    },
+    {
+      "input": "contract:tb@qKpMlzOe-Imn6ysZ-a8JjG2p-WHWvaFm-BWMiPi3-_LvnfRw/RGB20/transfer/amount/10@at:5WIb5EMY-RCLbO3Wq-hGdddRP4-IeCQzP1y-S5H_UKzd-ViYmlA/?lock=A64CDrfmG483",
+      "expect": "ok",
+      "source": "sonic-callreq@0.12.0 src/uri.rs:411",
+      "roundtrip": true
+    },
+    {
+      "input": "contract:tb@qKpMlzOe-Imn6ysZ-a8JjG2p-WHWvaFm-BWMiPi3-_LvnfRw/RGB20/transfer/amount/10@at:5WIb5EMY-RCLbO3Wq-hGdddRP4-IeCQzP1y-S5H_UKzd-ViYmlA/?expiry=2021-05-20T08:32:48+00:00",
+      "expect": "ok",
+      "source": "sonic-callreq@0.12.0 src/uri.rs:432",
+      "roundtrip": true
+    },
+    {
+      "input": "contract:tb@qKpMlzOe-Imn6ysZ-a8JjG2p-WHWvaFm-BWMiPi3-_LvnfRw/RGB20/transfer/amount/10@at:5WIb5EMY-RCLbO3Wq-hGdddRP4-IeCQzP1y-S5H_UKzd-ViYmlA/?endpoints=http://127.0.0.1:8080,https+json-rpc://127.0.0.1:8081,wss://127.0.0.1:8081,storm://127.0.0.1:8082,some_bullshit",
+      "expect": "ok",
+      "source": "sonic-callreq@0.12.0 src/uri.rs:453",
+      "roundtrip": true
+    },
+    {
+      "input": "contract:tb@qKpMlzOe-Imn6ysZ-a8JjG2p-WHWvaFm-BWMiPi3-_LvnfRw/RGB20/transfer/amount/10@at:5WIb5EMY-RCLbO3Wq-hGdddRP4-IeCQzP1y-S5H_UKzd-ViYmlA/?sats=40&bull=shit&other=x",
+      "expect": "ok",
+      "source": "sonic-callreq@0.12.0 src/uri.rs:520",
+      "roundtrip": true
+    }
+  ]
+}

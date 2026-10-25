@@ -1,0 +1,215 @@
+{
+  "line": "v0.11",
+  "vectors": [
+    {
+      "input": "rgb:eIbQx5Am-XRDjj01-RM~5eo7-rv2nluD-OnBJRAy-S9~Yfts/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:571",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:tx8NOyGe-NkPZex~-U0J_1om-CfrOeoO-7di9xZb-vT3nxyo/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/1@0/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:580",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:eIbQx5Am-XRDjj01-RM~5eo7-rv2nluD-OnBJRAy-S9~Yfts/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/Sa/bc:wvout:A8cJ7Ww3-NIzADo3-Tzp_5aD-7CTBWmA-AAAAAAA-AAAAAAA-ALSQkcw",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:592",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:eIbQx5Am-XRDjj01-RM~5eo7-rv2nluD-OnBJRAy-S9~Yfts/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/Sa/bc:wvout:A8cJ7Ww3-NIzADo3-Tzp_5aD-7CTBWmA-AAAAAAA-AAAAAAA-ALSQkcw+750f58bcca0fdb11891e7979d829b8c56e0963dba08c44f54a256cf7dbc09caf",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:599",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:eIbQx5Am-XRDjj01-RM~5eo7-rv2nluD-OnBJRAy-S9~Yfts/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/~/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:607",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:eIbQx5Am-XRDjj01-RM~5eo7-rv2nluD-OnBJRAy-S9~Yfts/V8ujLLtH2k2QSmaDpZI3o06ACIm2UNT0TZl11FiqRuY/~/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:615",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:~/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/~/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:623",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:~/~/~/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:629",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:eIbQx5Am-XRDjj01-RM~5eo7-rv2nluD-OnBJRAy-S9~Yfts/~/~/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:635",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?expiry=1682086371",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:672",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?expiry=six",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:680",
+      "error": "InvalidExpiration"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?expiry",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:687",
+      "error": "InvalidQueryParam"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?unknown=new",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:694",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?unknown=new&another=new",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:701",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?expiry=1682086371&unknown=new",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:709",
+      "roundtrip": true
+    },
+    {
+      "input": "eIbQx5Am-XRDjj01-RM~5eo7-rv2nluD-OnBJRAy-S9~Yfts/~/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:735",
+      "error": "Invalid"
+    },
+    {
+      "input": "bad:2WBcas9-yjzEvGufY-9GEgnyMj7-beMNMWA8r-sPHtV1nPU-TMsGMQX/~/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:741",
+      "error": "InvalidScheme"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:747",
+      "error": "InvalidQueryParam"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=bad",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:754",
+      "error": "InvalidQueryParam"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=rpca://host.example.com",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:761",
+      "error": "InvalidQueryParam"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=rpc://host.example.com",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:769",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=rpcs://user:pass@host-1.ex-ample.com:1234",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:781",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=rpcs://%5B2001:db8::1%5D:1234",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:793",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=rpc://",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:805",
+      "error": "InvalidQueryParam"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=rpc/host.example.com",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:812",
+      "error": "InvalidQueryParam"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=rpc://ho]t",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:820",
+      "error": "Invalid"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=https://host.example.com",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:828",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=wss://host.example.com",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:841",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=storm://_/",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:854",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa?endpoints=rpcs://host1.example.com,http://host2.example.com,ws://host3.example.com",
+      "expect": "ok",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:864",
+      "roundtrip": true
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:wvout:+750f58bcca0fdb11891e7979d829b8c56e0963dba08c44f54a256cf7dbc09caf",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:907",
+      "error": "Beneficiary"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/750f58bcca0fdb11891e7979d829b8c56e0963dba08c44f54a256cf7dbc09caf",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:914",
+      "error": "Beneficiary"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/:+750f58bcca0fdb11891e7979d829b8c56e0963dba08c44f54a256cf7dbc09caf",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:921",
+      "error": "Beneficiary"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:wvout:BYWmQlmL-$i5Co3j-LtTvxSr-53!Brv7-fc7ZntC-ha988ci-jqKOj4Q+750f58bcca0fdb11891e7979",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:928",
+      "error": "Beneficiary"
+    },
+    {
+      "input": "rgb:3NoxsLum-cRPebTV-gTZY8qY-KS20lx7-OqgtBls-t7muan4/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:wvout:BYWmQlmL-$i5Co3j-LtTvxSr-53!Brv7-fc7ZntC-ha988ci-jqKOj4Q+",
+      "expect": "error",
+      "source": "rgb-invoicing@0.11.1 src/parse.rs:936",
+      "error": "Beneficiary"
+    }
+  ]
+}

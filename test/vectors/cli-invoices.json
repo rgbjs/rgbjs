@@ -1,0 +1,54 @@
+{
+  "comment": "Invoices printed by the real CLIs, with the inputs that produced them. Sources are rgb-docs pages that quote the output.",
+  "vectors": [
+    {
+      "line": "v0.11",
+      "input": "rgb:Tk3d0h5w-8v4XYCg-7e~Sc0o-Lu6rp~X-~Jt7VHS-jqgzFD8/~/BF/bcrt:utxob:MSLQCKkW-w6caphB-12do1nJ-HNfgxvv-WE3zOOC-s8yZyHq-Ihoa5",
+      "source": "rgb-cmd 0.11.1 `rgb invoice --amount 100 <contract>` on regtest (rgb-sandbox README; rgb-docs quick-start)",
+      "expect": {
+        "contractId": "rgb:Tk3d0h5w-8v4XYCg-7e~Sc0o-Lu6rp~X-~Jt7VHS-jqgzFD8",
+        "network": "regtest",
+        "testnet": true,
+        "amount": "100",
+        "schemaId": null,
+        "beneficiary": { "type": "blinded-utxo", "value": "bcrt:utxob:MSLQCKkW-w6caphB-12do1nJ-HNfgxvv-WE3zOOC-s8yZyHq-Ihoa5" }
+      }
+    },
+    {
+      "line": "v0.11",
+      "input": "rgb:eIbQx5Am-XRDjj01-RM~5eo7-rv2nluD-OnBJRAy-S9~Yfts/XvmU3d4_nQQ8S7oagbXi07x5vjMm7P~ERukQNX6SC4M/BF/bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa",
+      "source": "rgb-invoicing 0.11.1 src/parse.rs test: 100-unit NIA invoice",
+      "expect": {
+        "contractId": "rgb:eIbQx5Am-XRDjj01-RM~5eo7-rv2nluD-OnBJRAy-S9~Yfts",
+        "network": "bitcoin",
+        "testnet": false,
+        "amount": "100",
+        "beneficiary": { "type": "blinded-utxo", "value": "bc:utxob:4vm1CX2Z-K8hMo59-e7dgGBS-Jka7mYn-Xe~yP85-yUiHHxr-aVlYa" }
+      }
+    },
+    {
+      "line": "v0.12",
+      "input": "contract:tb@contract:nztjpjRX-_NVDDgd-EHENsqL-AKsGsyV-F6LzljB-X4WTv0Y/10@at:FWKMBVDc-NBk8dAZA-tYGt2HIP-MtzSRO17-8g3QvRIN-nuPjug/",
+      "source": "rgb-wallet 0.12.0-rc.3 `rgb invoice -w alice --nonce 0 DemoToken 10` (rgb-docs quick-start)",
+      "expect": {
+        "contractId": "contract:nztjpjRX-_NVDDgd-EHENsqL-AKsGsyV-F6LzljB-X4WTv0Y",
+        "network": "bitcoin",
+        "testnet": true,
+        "amount": "10",
+        "beneficiary": { "type": "auth-token", "value": "at:FWKMBVDc-NBk8dAZA-tYGt2HIP-MtzSRO17-8g3QvRIN-nuPjug" }
+      }
+    },
+    {
+      "line": "v0.12",
+      "input": "contract:tb@contract:nztjpjRX-_NVDDgd-EHENsqL-AKsGsyV-F6LzljB-X4WTv0Y/10@wout:AAAAAAAA-AAAQI6Ji-M00AJxeO-tYwYd2u7-iKteBoc2-eHjo/",
+      "source": "rgb-wallet 0.12.0-rc.3 `rgb invoice -w alice --wout DemoToken 10` (rgb-docs CLI reference)",
+      "expect": {
+        "contractId": "contract:nztjpjRX-_NVDDgd-EHENsqL-AKsGsyV-F6LzljB-X4WTv0Y",
+        "network": "bitcoin",
+        "testnet": true,
+        "amount": "10",
+        "beneficiary": { "type": "witness-out", "value": "wout:AAAAAAAA-AAAQI6Ji-M00AJxeO-tYwYd2u7-iKteBoc2-eHjo" }
+      }
+    }
+  ]
+}

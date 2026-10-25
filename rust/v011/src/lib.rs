@@ -1,0 +1,251 @@
+//! wasm bindings for RGB v0.11 (rgb-protocol / RGB-Tools line).
+//!
+//! Everything here is offline: no keys, no network. Results are JSON strings,
+//! parsed on the JavaScript side.
+
+use std::collections::HashMap;
+use std::str::FromStr;
+
+use rgbinvoice::{Beneficiary, InvoiceState, RgbInvoice, RgbTransport};
+use rgbstd::containers::{
+    ConsignmentExt, Contract, FileContent, Transfer, ValidConsignment,
+};
+use rgbstd::validation::{
+    ResolveWitness, ValidationConfig, ValidationError, WitnessResolverError, WitnessStatus,
+};
+use rgbstd::contract::IssuerWrapper;
+use rgbstd::vm::WitnessOrd;
+use rgbstd::{SchemaId, TypeSystem};
+use schemata::{
+    CollectibleFungibleAsset, InflatableFungibleAsset, NonInflatableAsset, PermissionedFungibleAsset,
+    UniqueDigitalAsset,
+};
+use rgbstd::{ChainNet, ContractId, Txid};
+use serde_json::{json, Value};
+use wasm_bindgen::prelude::*;
+
+fn network(cn: ChainNet) -> &'static str {
+    match cn {
+        ChainNet::BitcoinMainnet => "bitcoin",
+        ChainNet::BitcoinTestnet3 => "testnet3",
+        ChainNet::BitcoinTestnet4 => "testnet4",
+        ChainNet::BitcoinSignet => "signet",
+        ChainNet::BitcoinSignetCustom => "signet-custom",
+        ChainNet::BitcoinRegtest => "regtest",
+        ChainNet::LiquidMainnet => "liquid",
+        ChainNet::LiquidTestnet => "liquid-testnet",
+    }
+}
+
+fn transport(t: &RgbTransport) -> Value {
+    match t {
+        RgbTransport::JsonRpc { tls, host } => json!({"type": "json-rpc", "tls": tls, "host": host}),
+        RgbTransport::RestHttp { tls, host } => json!({"type": "rest", "tls": tls, "host": host}),
+        RgbTransport::WebSockets { tls, host } => json!({"type": "websockets", "tls": tls, "host": host}),
+        RgbTransport::Storm {} => json!({"type": "storm"}),
+        _ => json!({"type": "unknown"}),
+    }
+}
+
+/// Parses a v0.11 invoice (`rgb:...`) into JSON.
+#[wasm_bindgen(js_name = parseInvoice)]
+pub fn parse_invoice(s: &str) -> Result<String, String> {
+    let inv = RgbInvoice::from_str(s).map_err(|e| e.to_string())?;
+    let chain_net = inv.chain_network();
+    let kind = match inv.beneficiary.clone().into_inner() {
+        Beneficiary::BlindedSeal(_) => "blinded-utxo",
+        Beneficiary::WitnessVout(..) => "witness-vout",
+    };
+    let beneficiary = json!({"type": kind, "value": inv.beneficiary.to_string()});
+    let (amount, data) = match &inv.assignment_state {
+        Some(InvoiceState::Amount(a)) => (Some(a.value().to_string()), None),
+        Some(InvoiceState::Data(d)) => (None, Some(d.to_string())),
+        _ => (None, None),
+    };
+    Ok(json!({
+        "line": "v0.11",
+        "invoice": inv.to_string(),
+        "network": network(chain_net),
+        "testnet": !matches!(chain_net, ChainNet::BitcoinMainnet | ChainNet::LiquidMainnet),
+        "contractId": inv.contract.map(|c| c.to_string()),
+        "schemaId": inv.schema.map(|s| s.to_string()),
+        "assignmentName": inv.assignment_name.as_ref().map(|n| n.to_string()),
+        "amount": amount,
+        "data": data,
+        "beneficiary": beneficiary,
+        "expiry": inv.expiry,
+        "transports": inv.transports.iter().map(transport).collect::<Vec<_>>(),
+        "unknownQuery": inv.unknown_query.iter().collect::<HashMap<_, _>>(),
+    })
+    .to_string())
+}
+
+/// Parses a v0.11 contract ID (`rgb:...`) and returns it in canonical form.
+#[wasm_bindgen(js_name = parseContractId)]
+pub fn parse_contract_id(s: &str) -> Result<String, String> {
+    let id = ContractId::from_str(s).map_err(|e| e.to_string())?;
+    Ok(json!({"line": "v0.11", "contractId": id.to_string(), "hex": id.to_byte_array().iter().map(|b| format!("{b:02x}")).collect::<String>()}).to_string())
+}
+
+/// The standard v0.11 schemas from `rgb-schemas`, whose type systems are
+/// trusted when validating. A consignment for any other schema is rejected.
+fn known_schema(id: SchemaId) -> Option<(&'static str, TypeSystem)> {
+    fn entry<W: IssuerWrapper>(name: &'static str) -> (SchemaId, &'static str, fn() -> TypeSystem) {
+        (W::schema().schema_id(), name, W::types)
+    }
+    [
+        entry::<NonInflatableAsset>("NIA"),
+        entry::<CollectibleFungibleAsset>("CFA"),
+        entry::<UniqueDigitalAsset>("UDA"),
+        entry::<InflatableFungibleAsset>("IFA"),
+        entry::<PermissionedFungibleAsset>("PFA"),
+    ]
+    .into_iter()
+    .find(|(sid, ..)| *sid == id)
+    .map(|(_, name, types)| (name, types()))
+}
+
+/// Lists the schemas `validateConsignment` accepts.
+#[wasm_bindgen(js_name = knownSchemas)]
+pub fn known_schemas() -> String {
+    fn entry<W: IssuerWrapper>(name: &str) -> Value {
+        json!({"name": name, "schemaId": W::schema().schema_id().to_string()})
+    }
+    json!([
+        entry::<NonInflatableAsset>("NIA"),
+        entry::<CollectibleFungibleAsset>("CFA"),
+        entry::<UniqueDigitalAsset>("UDA"),
+        entry::<InflatableFungibleAsset>("IFA"),
+        entry::<PermissionedFungibleAsset>("PFA"),
+    ])
+    .to_string()
+}
+
+fn trusted(id: SchemaId, types: &TypeSystem) -> Result<(&'static str, TypeSystem), String> {
+    let (name, trusted) = known_schema(id)
+        .ok_or_else(|| format!("unknown schema {id}; only the standard rgb-schemas 0.11.1 schemas are supported"))?;
+    // rgb-consensus compares types with `Ty`'s PartialEq, which ignores field
+    // and variant names. Names change how state reads, so require the full
+    // definition to match.
+    for (sem_id, ty) in types.iter() {
+        if trusted.get(*sem_id).map(|t| format!("{t:?}")) != Some(format!("{ty:?}")) {
+            return Err(format!("type {sem_id} in the consignment differs from the trusted {name} definition"));
+        }
+    }
+    Ok((name, trusted))
+}
+
+/// Resolves witness transactions only from the transactions carried in the
+/// consignment itself, as `Tentative`. Nothing is looked up on chain.
+struct OfflineResolver(HashMap<Txid, rgbstd::bitcoin::Transaction>);
+
+impl ResolveWitness for OfflineResolver {
+    fn resolve_witness(&self, witness_id: Txid) -> Result<WitnessStatus, WitnessResolverError> {
+        Ok(match self.0.get(&witness_id) {
+            Some(tx) => WitnessStatus::Resolved(tx.clone(), WitnessOrd::Tentative),
+            None => WitnessStatus::Unresolved,
+        })
+    }
+
+    fn check_chain_net(&self, _: ChainNet) -> Result<(), WitnessResolverError> { Ok(()) }
+}
+
+fn report<const T: bool>(
+    kind: &str,
+    contract_id: ContractId,
+    schema_id: String,
+    schema_name: &str,
+    chain_net: ChainNet,
+    witnesses: Vec<(Txid, bool)>,
+    res: Result<ValidConsignment<T>, ValidationError>,
+) -> String {
+    let witnesses: Vec<_> = witnesses
+        .into_iter()
+        .map(|(txid, included)| json!({"txid": txid.to_string(), "included": included}))
+        .collect();
+    let base = json!({
+        "line": "v0.11",
+        "kind": kind,
+        "contractId": contract_id.to_string(),
+        "schemaId": schema_id,
+        "schema": schema_name,
+        "network": network(chain_net),
+        "witnesses": witnesses,
+    });
+    let mut out = base.as_object().unwrap().clone();
+    match res {
+        Ok(valid) => {
+            let status = valid.validation_status();
+            out.insert("valid".into(), json!(true));
+            out.insert("warnings".into(), json!(status.warnings.iter().map(|w| w.to_string()).collect::<Vec<_>>()));
+            out.insert("info".into(), json!(status.info.iter().map(|i| i.to_string()).collect::<Vec<_>>()));
+        }
+        Err(ValidationError::InvalidConsignment(failure)) => {
+            out.insert("valid".into(), json!(false));
+            out.insert("error".into(), json!(failure.to_string()));
+        }
+        Err(err) => {
+            out.insert("valid".into(), json!(false));
+            out.insert("error".into(), json!(err.to_string()));
+        }
+    }
+    Value::Object(out).to_string()
+}
+
+/// Validates a v0.11 consignment file (the `RGB\0TFR` transfer or `RGB\0CON`
+/// contract binary) offline. Witness transactions are taken from the
+/// consignment; whether they are mined is NOT checked, so `valid: true` means
+/// "valid if the listed witnesses confirm".
+#[wasm_bindgen(js_name = validateConsignment)]
+pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
+    if bytes.len() < 7 || &bytes[..4] != b"RGB\0" {
+        return Err("not an RGB v0.11 consignment file (missing RGB\\0 header)".into());
+    }
+    match &bytes[4..7] {
+        b"TFR" => {
+            let c = Transfer::load(bytes).map_err(|e| e.to_string())?;
+            let chain_net = c.genesis.chain_net;
+            let txes: HashMap<_, _> = c
+                .bundles
+                .iter()
+                .filter_map(|bw| bw.pub_witness.tx().cloned())
+                .map(|tx| (tx.compute_txid(), tx))
+                .collect();
+            let witnesses = c
+                .bundles
+                .iter()
+                .map(|bw| (bw.pub_witness.txid(), bw.pub_witness.tx().is_some()))
+                .collect();
+            let (id, schema) = (c.contract_id(), c.schema_id().to_string());
+            let (name, trusted_typesystem) = trusted(c.schema_id(), &c.types)?;
+            let config = ValidationConfig { chain_net, trusted_typesystem, ..Default::default() };
+            let res = c.validate(&OfflineResolver(txes), &config);
+            Ok(report("transfer", id, schema, name, chain_net, witnesses, res))
+        }
+        b"CON" => {
+            let c = Contract::load(bytes).map_err(|e| e.to_string())?;
+            let chain_net = c.genesis.chain_net;
+            let (id, schema) = (c.contract_id(), c.schema_id().to_string());
+            let (name, trusted_typesystem) = trusted(c.schema_id(), &c.types)?;
+            let config = ValidationConfig { chain_net, trusted_typesystem, ..Default::default() };
+            let res = c.validate(&OfflineResolver(HashMap::new()), &config);
+            Ok(report("contract", id, schema, name, chain_net, vec![], res))
+        }
+        other => Err(format!(
+            "unsupported v0.11 file type {:?}; expected TFR or CON",
+            String::from_utf8_lossy(other)
+        )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn demo_contract() {
+        let bytes = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../../test/vectors/v011/demo.contract.rgb")).unwrap();
+        println!("{}", validate_consignment(&bytes).unwrap());
+    }
+}
+

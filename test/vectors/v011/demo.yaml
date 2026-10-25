@@ -1,0 +1,18 @@
+schema: rgb:sch:RWhwUfTMpuP2Zfx1~j4nswCANGeJrYOqDcKelaMV4zU#remote-digital-pegasus
+
+globals:
+  spec:
+    ticker: DEMO
+    name: Demo Asset
+    details: ~
+    precision: 0
+  terms:
+    text: >
+      Test vector for rgbjs. Not a real asset.
+    media: ~
+  issuedSupply: 1000000
+
+assignments:
+  assetOwner:
+    seal: 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
+    amount: 1000000
