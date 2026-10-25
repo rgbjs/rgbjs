@@ -56,3 +56,33 @@ export const createInvoice = ({ contractId, value, outpoint, noiseSeed, nonce = 
  * `receive: { authToken, addressedToYou, received: [{ name, value, outpoint, witness }] }`.
  */
 export const receive = (bytes, { outpoint, noiseSeed, nonce = 0 }) => call(wasm.receive, bytes, outpoint, noiseSeed, BigInt(nonce))
+
+/**
+ * Pays an invoice and returns { psbt, txid, tx, fee, change, transfer,
+ * backup }: the witness transaction as an unsigned PSBT (base64, version 0)
+ * for your own signer, the transfer file (bytes) to give the payee once it
+ * is broadcast, and your own updated contract file (bytes), which holds the
+ * change: pay from it next time. Nothing is signed or sent.
+ *
+ * `contracts` is the contract's history as you hold it (the issuer's backup
+ * and any transfers you received): one file's bytes or a list. `descriptor`
+ * is your BIP86 taproot xpub with origin and `/<0;1>/*`; `coins` are the
+ * outputs you may spend, [{ outpoint, sats, terminal, tx }] with the hex of
+ * the transaction that made each; `seals` are your invoices' { outpoint,
+ * nonce }; `noiseSeed` is the 32-byte secret they were made with. `fee` is
+ * in sats. rgb-wallet 0.12.0-rc.3 always commits with an OP_RETURN output.
+ */
+export function payInvoice ({ contracts, invoice, descriptor, coins, seals = [], fee, giveaway, noiseSeed }) {
+  const files = Array.isArray(contracts) ? contracts : [contracts]
+  const all = new Uint8Array(files.reduce((n, f) => n + 4 + f.length, 0))
+  let at = 0
+  for (const f of files) { new DataView(all.buffer).setUint32(at, f.length); all.set(f, at + 4); at += 4 + f.length }
+  const r = call(wasm.payInvoice, all, JSON.stringify({ descriptor, coins, seals, invoice, fee, giveaway }), noiseSeed)
+  const bytes = h => Uint8Array.from(h.match(/../g), x => parseInt(x, 16))
+  r.transfer = bytes(r.transfer)
+  r.backup = bytes(r.backup)
+  return r
+}
+
+/** The testnet address and scriptPubKey (hex) of `descriptor` at `terminal`, such as `&0/0`. */
+export const deriveAddress = (descriptor, terminal = '&0/0') => call(wasm.deriveAddress, descriptor, terminal)

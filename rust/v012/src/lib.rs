@@ -8,6 +8,7 @@ extern crate amplify;
 
 mod create;
 mod mem;
+mod pay;
 
 use std::collections::HashMap;
 use std::convert::Infallible;

@@ -12,4 +12,5 @@ The trusted issuer `rust/v012/issuers/RGB20-FNA.issuer` is copied from RGB-WG/rg
 
 The RGB21 and RGB25 issuers in `rust/v012/issuers/` are from pandora-prime/rgb-issuers at commit 49b4048 (Apache-2.0), the same developer (`dns:pandoraprime.ch`) as the RGB20 FNA issuer.
 - `created-{fna,ufa,nft}.contract.rgb`: contracts made by rgbjs's own `v012.issueContract` (RGB20 FNA, RGB25 UFA and RGB21 NFT) from the fixed parameters and noise seed in `test/created-params.js`. The pinned `rgb-wallet` accepts all three (`accept -u`, exit 0).
+- `paid-fna.transfer.rgb`: a payment made by rgbjs's own `v012.payInvoice` (see `test/pay-params.js`): Alice pays Bob 1000 of 5000. Payments take random commitment entropy, so this is one sample run, not a reproduction. The pinned `rgb-wallet` accepts it (`accept -u`, exit 0).
 - `receive-fna.transfer.rgb` and `receive-fna.secret.json`: the full receive loop. rgbjs's `createInvoice` derived Bob's auth token from a made-up outpoint and noise seed, `rust/gen-v012` paid it with `pay_invoice` (`BOB_AUTH=…`, contract `RecvDemo`), and `receive` must find the 10 units with Bob's secret.

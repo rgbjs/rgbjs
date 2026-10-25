@@ -259,6 +259,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bp-derive"
+version = "0.12.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9868177dbd5f58895b1e75487f51c3aa42b6362958d1a4f8fc17e4885cc668b3"
+dependencies = [
+ "amplify",
+ "bp-consensus",
+ "bp-invoice",
+ "commit_verify",
+ "hmac",
+ "indexmap",
+ "sha2",
+]
+
+[[package]]
 name = "bp-invoice"
 version = "0.12.0-rc.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -287,6 +302,25 @@ dependencies = [
  "serde",
  "single_use_seals",
  "strict_encoding",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "bp-std"
+version = "0.12.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c69f38f9656b94b7241a9219523306fd3ed1aaefe5bd931da079a86dfeda025"
+dependencies = [
+ "amplify",
+ "bp-consensus",
+ "bp-core",
+ "bp-derive",
+ "bp-invoice",
+ "descriptors",
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
+ "psbt",
+ "secp256k1",
  "wasm-bindgen",
 ]
 
@@ -420,6 +454,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "descriptors"
+version = "0.12.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d3679f0c2ca4e9c071e963c42695b6180b854ca0eba20cec8168363b169d1e0"
+dependencies = [
+ "amplify",
+ "bp-derive",
+ "commit_verify",
+ "indexmap",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -427,6 +473,7 @@ checksum = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
 dependencies = [
  "block-buffer",
  "crypto-common",
+ "subtle",
 ]
 
 [[package]]
@@ -546,6 +593,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "271e0d19bcb473b6675739a2b536076b24a082316cb5199ad918edce10c599e8"
 dependencies = [
  "arrayvec",
+]
+
+[[package]]
+name = "hmac"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e"
+dependencies = [
+ "digest",
 ]
 
 [[package]]
@@ -704,6 +760,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "psbt"
+version = "0.12.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25159222184ff955caf54e457079287c3f0dc3ce40dc556d9f565ffeb5c8139e"
+dependencies = [
+ "amplify",
+ "base64",
+ "bp-consensus",
+ "bp-core",
+ "bp-derive",
+ "commit_verify",
+ "descriptors",
+ "indexmap",
+ "strict_encoding",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -816,6 +889,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "rgb-descriptors"
+version = "0.12.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5569d606909f8601bce47dc51eb56f4b87fd3fe5667aeb5310fdb40ff1fe7706"
+dependencies = [
+ "amplify",
+ "bp-std",
+ "commit_verify",
+ "indexmap",
+ "rgb-std",
+]
+
+[[package]]
 name = "rgb-invoice"
 version = "0.12.0-rc.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -831,6 +917,38 @@ dependencies = [
  "serde",
  "sonic-callreq",
  "strict_encoding",
+]
+
+[[package]]
+name = "rgb-psbt"
+version = "0.12.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5b392d5bf4715216503b346365cce4a47fba6154be8e689a5c8aebb34e1275d0"
+dependencies = [
+ "amplify",
+ "bp-core",
+ "bp-std",
+ "rgb-std",
+]
+
+[[package]]
+name = "rgb-runtime"
+version = "0.12.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba3dfdb8a2af5d28411cf1a1bd40b3bb25d011ce7109456c3e7bcf902def7fdd"
+dependencies = [
+ "amplify",
+ "bp-std",
+ "chrono",
+ "commit_verify",
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
+ "indexmap",
+ "rgb-descriptors",
+ "rgb-psbt",
+ "rgb-std",
+ "strict_types",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -865,11 +983,14 @@ version = "0.0.1"
 dependencies = [
  "amplify",
  "bp-core",
+ "bp-std",
  "commit_verify",
  "hypersonic",
  "rgb-invoice",
+ "rgb-runtime",
  "rgb-std",
  "secp256k1-sys",
+ "serde",
  "serde_json",
  "sonic-callreq",
  "strict_encoding",
@@ -1153,6 +1274,12 @@ name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
+
+[[package]]
+name = "subtle"
+version = "2.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "syn"

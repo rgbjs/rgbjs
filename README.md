@@ -26,9 +26,10 @@ rgbjs doesn't reimplement either protocol. It wraps the reference code, so it ac
 | Tell which line a string or file is | yes | yes |
 | Validate a consignment offline | yes (contracts and transfers) | yes (contracts and transfers) |
 | Read contract state from a consignment | yes | yes |
-| Issue a contract (test networks) | yes: NIA, CFA, UDA, IFA, PFA | yes: RGB20 FNA, RGB25 UFA, or any issuer file |
+| Issue a contract (test networks) | yes: NIA, CFA, UDA, IFA, PFA | yes: RGB20 FNA, RGB25 UFA, RGB21 NFT, or any issuer file |
 | Create an invoice (test networks) | yes | yes |
 | Check what a transfer pays you, from your invoice secret | yes | yes |
+| Pay an invoice: unsigned PSBT plus the transfer file (test networks) | not yet | yes |
 | Look up witness confirmations on an Esplora server (opt-in) | yes | yes |
 
 ## Use
@@ -82,6 +83,21 @@ Did a transfer pay me? Give it the transfer and the secret from your invoice:
 const r = v011.receive(transferBytes, { outpoint, blinding })           // v0.12: { outpoint, noiseSeed, nonce }
 r.receive.addressedToYou   // true if the transfer is for your seal
 r.receive.received         // [{ name: 'assetOwner', value: '100', outpoint, witness }]
+```
+
+Paying (v0.12): give your history of the contract, your xpub and the coins you may spend. You get the witness transaction as an unsigned PSBT for your own signer, the transfer for the payee, and your updated file holding the change. Nothing is signed or broadcast:
+
+```js
+const p = v012.payInvoice({
+  contracts: [backupBytes],                   // and any transfers you received
+  invoice: 'contract:tb@…/100@at:…/',
+  descriptor: '[fp/86h/1h/0h]tpub…/<0;1>/*',  // v012.deriveAddress(descriptor, '&0/0') gives its addresses
+  coins: [{ outpoint: 'txid:vout', sats: 50000, terminal: '&0/0', tx: '<hex of the transaction that made it>' }],
+  seals: [{ outpoint, nonce }],               // your invoices that were paid
+  fee: 500, noiseSeed })                      // the 32-byte seed your contracts and invoices used
+p.psbt       // base64; sign and broadcast it, then
+p.transfer   // give this to the payee
+p.backup     // keep this: pay from it next time (the change is p.change.vout of p.txid)
 ```
 
 Are the witnesses mined? This is the only rgbjs call that uses the network, and only the transaction IDs are sent:
