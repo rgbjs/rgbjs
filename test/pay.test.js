@@ -102,3 +102,18 @@ test('a chain of five payments from change validates at every step', () => {
   }
   assert.equal(left, 4500)
 })
+
+// Real payments, mined on the BLAKE2b testnet4 (txbt4); see test/vectors/v012/README.md.
+test('the mined txbt4 transfers validate and name their mined witnesses', async () => {
+  const { readFileSync } = await import('node:fs')
+  const file = n => new Uint8Array(readFileSync(new URL(`./vectors/v012/${n}`, import.meta.url)))
+  const OPRET = 'c14ab82fffa1858d9721d3d94a6effaf01205c787e0732d50baba38ddc07c5d1'
+  const TAPRET = 'a564889f30d6cde95c5159e9bafb436265f2bf11e3b7b6ecddf89efe5b7656c5'
+  const a = validateConsignment(file('mined-opret.transfer.rgb'))
+  const b = validateConsignment(file('mined-tapret.transfer.rgb'))
+  assert.equal(a.valid, true, a.error)
+  assert.equal(b.valid, true, b.error)
+  assert.equal(a.contractId, b.contractId)
+  assert.deepEqual(a.witnesses.map(w => w.txid), [OPRET])
+  assert.deepEqual(b.witnesses.map(w => w.txid).sort(), [OPRET, TAPRET].sort())
+})
