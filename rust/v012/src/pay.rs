@@ -162,6 +162,12 @@ pub fn pay_invoice(contracts: &[u8], params: &str, noise_seed: &[u8]) -> Res<Str
     let params: PayParams = serde_json::from_str(params).map_err(|e| format!("parameters: {e}"))?;
     let seed: [u8; 32] = noise_seed.try_into().map_err(|_| "the noise seed must be exactly 32 bytes".to_string())?;
     let invoice = RgbInvoice::<ContractId>::from_str(&params.invoice).map_err(|e| format!("invoice: {e}"))?;
+    // Test networks only, like issuing: a mainnet invoice is refused before
+    // anything is built.
+    let parsed: serde_json::Value = serde_json::from_str(&crate::parse_invoice(&params.invoice)?).map_err(|e| e.to_string())?;
+    if parsed["testnet"] != serde_json::Value::Bool(true) {
+        return Err("mainnet is not supported: rgbjs pays on test networks only".into());
+    }
     let xpub = XpubDerivable::from_str(&params.descriptor).map_err(|e| format!("descriptor: {e}"))?;
 
     let mut descriptor = RgbDescr::key_only_unfunded(xpub, seed);

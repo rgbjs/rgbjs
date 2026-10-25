@@ -1,16 +1,16 @@
 // RGB v0.12 (RGB-WG / LNP/BP crates 0.12.0-rc.3).
 import init, * as wasm from '../wasm/v012/rgbjs_v012.js'
-import { call, load } from './load.js'
+import { call, explain, load } from './load.js'
 
 await load(init, new URL('../wasm/v012/rgbjs_v012_bg.wasm', import.meta.url))
 
 export const line = 'v0.12'
 
 /** Parses a `contract:` invoice. Throws on anything that is not a v0.12 invoice. */
-export const parseInvoice = invoice => call(wasm.parseInvoice, invoice)
+export const parseInvoice = invoice => explain('not a valid v0.12 invoice', wasm.parseInvoice, invoice)
 
 /** Parses a `contract:` contract ID. */
-export const parseContractId = id => call(wasm.parseContractId, id)
+export const parseContractId = id => explain('not a valid v0.12 contract ID', wasm.parseContractId, id)
 
 /**
  * Validates a consignment file (`RGBCNSGN`, from `rgb backup`, `consign` or
@@ -24,7 +24,7 @@ export const parseContractId = id => call(wasm.parseContractId, id)
  * in `knownIssuers()` exactly. For other issuers, compare `issuer.id` with
  * `parseIssuer(file).id` for an issuer file you trust.
  */
-export const validateConsignment = bytes => call(wasm.validateConsignment, bytes)
+export const validateConsignment = bytes => explain('not a valid consignment', wasm.validateConsignment, bytes)
 
 /** Parses an `.issuer` file; its `id` is comparable with `issuer.id` above. */
 export const parseIssuer = bytes => call(wasm.parseIssuer, bytes)
@@ -43,14 +43,18 @@ export function issueContract (params, noiseSeed, issuerFile) {
 }
 
 /**
- * Creates an invoice paying to an auth token on one of your outputs, derived
- * from `outpoint`, the secret `noiseSeed` and `nonce` as rgb-wallet does.
+ * Creates an invoice for `amount` (a number, or a string for non-fungible
+ * state) paying to an auth token on one of your outputs, derived from
+ * `outpoint`, the secret `noiseSeed` and `nonce` as rgb-wallet does.
  * `expiry` (optional, Unix seconds) adds `?expiry=<RFC 3339>`; parseInvoice
  * reports it back as `expiry`.
  * Returns { invoice, authToken, seal }.
  */
-export const createInvoice = ({ contractId, value, outpoint, noiseSeed, nonce = 0, expiry }) =>
-  call(wasm.createInvoice, contractId, String(value), outpoint, noiseSeed, BigInt(nonce), expiry === undefined ? undefined : Number(expiry))
+export function createInvoice ({ contractId, amount, value, outpoint, noiseSeed, nonce = 0, expiry }) {
+  const what = amount ?? value // `value` is the older name
+  if (what === undefined) throw new Error('give the invoice an amount')
+  return call(wasm.createInvoice, contractId, String(what), outpoint, noiseSeed, BigInt(nonce), expiry === undefined ? undefined : Number(expiry))
+}
 
 /**
  * Did this consignment pay me? Give the file and your invoice secret

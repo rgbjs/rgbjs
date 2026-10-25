@@ -59,6 +59,18 @@ test('payInvoice: Bob pays onward from the transfer he received', () => {
   assert.throws(() => pay({ contracts: toBob().transfer, seals: [{ outpoint: bobCoin.outpoint, nonce: 0 }], invoice: inv.invoice, coins: [bobCoin], noiseSeed: CAROL }), /not enough/)
 })
 
+test('payInvoice refuses a mainnet invoice', () => {
+  const bc = bobInvoice.invoice.replace('contract:tb@', 'contract:bc@')
+  assert.throws(() => pay({ contracts: contract, invoice: bc, coins: [aliceCoin], noiseSeed: ALICE }), /mainnet is not supported/)
+})
+
+test('createInvoice takes amount, or value as the older name', () => {
+  const a = v012.createInvoice({ contractId, amount: 5, outpoint: bobCoin.outpoint, noiseSeed: BOB, nonce: 7 })
+  const b = v012.createInvoice({ contractId, value: 5, outpoint: bobCoin.outpoint, noiseSeed: BOB, nonce: 7 })
+  assert.equal(a.invoice, b.invoice)
+  assert.throws(() => v012.createInvoice({ contractId, outpoint: bobCoin.outpoint, noiseSeed: BOB }), /amount/)
+})
+
 test('payInvoice refuses overspending and inconsistent input', () => {
   const big = v012.createInvoice({ contractId, value: 6000, outpoint: C2, noiseSeed: CAROL, nonce: 3 })
   assert.throws(() => pay({ contracts: contract, invoice: big.invoice, coins: [aliceCoin], noiseSeed: ALICE }), /not enough/)

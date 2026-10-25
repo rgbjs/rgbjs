@@ -52,7 +52,13 @@ fn issuers(extra: Option<Vec<u8>>) -> Res<Vec<Issuer>> {
 /// doesn't already know.
 #[wasm_bindgen(js_name = issueContract)]
 pub fn issue_contract(params: &str, noise_seed: &[u8], issuer: Option<Vec<u8>>) -> Res<Vec<u8>> {
-    let params: CreateParams<Outpoint> = serde_json::from_str(params).map_err(|e| format!("parameters: {e}"))?;
+    let params: CreateParams<Outpoint> = serde_json::from_str(params).map_err(|e| {
+        if e.to_string().contains("IssuerSpec") {
+            "parameters: `issuer` must name a known issuer, as { codexId, version, checksum }".to_string()
+        } else {
+            format!("parameters: {e}")
+        }
+    })?;
     if !params.testnet {
         return Err("mainnet is not supported: rgbjs creates on test networks only".into());
     }

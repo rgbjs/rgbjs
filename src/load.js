@@ -17,3 +17,17 @@ export function call (fn, ...args) {
     throw new Error(String(err))
   }
 }
+
+/**
+ * Like `call`, but says what was wrong with the input: upstream messages
+ * ("invalid length of identifier …") get a prefix naming the thing, unless
+ * they already say it.
+ */
+export function explain (what, fn, ...args) {
+  try {
+    return call(fn, ...args)
+  } catch (err) {
+    if (/^(not an? |mainnet )/.test(err.message)) throw err
+    throw new Error(`${what}: ${err.message}`)
+  }
+}

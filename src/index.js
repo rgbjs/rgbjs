@@ -33,7 +33,9 @@ function pick (input) {
   const line = detectLine(input)
   if (line === 'v0.11') return v011
   if (line === 'v0.12') return v012
-  throw new Error('not an RGB v0.11 (rgb:) or v0.12 (contract:) value')
+  throw new Error(input instanceof Uint8Array
+    ? 'not an RGB v0.11 (RGB\\0…) or v0.12 (RGBCNSGN) file'
+    : 'not an RGB v0.11 (rgb:) or v0.12 (contract:) value')
 }
 
 /** Parses an invoice from either line. The result's `line` says which. */
