@@ -24,7 +24,7 @@ rgbjs doesn't reimplement either protocol. It wraps the reference code, so it ac
 | Parse an invoice | yes | yes |
 | Parse a contract ID | yes | yes |
 | Tell which line a string or file is | yes | yes |
-| Validate a consignment offline | yes (contracts; transfers untested, see below) | yes (contracts; transfers untested) |
+| Validate a consignment offline | yes (contracts; transfers untested, see below) | yes (contracts and transfers) |
 | Read contract state from a consignment | not yet | yes |
 
 ## Use
@@ -73,7 +73,7 @@ Both lines run the reference validator. **Witness transactions aren't looked up 
 - v0.12 invoices print as `contract:tb@contract:<id>/...` instead of `contract:tb@<id>/...` ([AluVM/sonic#27](https://github.com/AluVM/sonic/issues/27)). The cause is that `CallScope`'s `Display` doesn't pass the `{:-}` flag on to `ContractId`. Both forms parse to the same invoice.
 - The 0.11.2 consignment format (rgb-api 0.11.2-rc.1) can't be read. 0.11.1 is pinned until 0.11.2 is final.
 - `wasm/v011` is about 4.9 MB (2.8 MB gzipped). Most of that is two copies of secp256k1 pulled in by upstream dependencies.
-- No transfer consignments in the test vectors yet, for either line. Both CLIs need an indexer to build one (`rgb pay`/`exec` in v0.12, `transfer` in v0.11).
+- No v0.11 transfer consignment in the test vectors yet: `rgb transfer` needs an indexer. The v0.12 transfer vector comes from `rust/gen-v012`, which drives `rgb-runtime` with a made-up funding transaction instead of an indexer. A v0.11 equivalent is next.
 
 ## Tests
 
@@ -85,6 +85,7 @@ The tests run against vectors in `test/vectors/`:
 
 - **Upstream invoice tests.** `scripts/extract-vectors.py` extracts every case from the invoice tests in `rgb-invoicing` 0.11.1 and `sonic-callreq` 0.12.0, so rgbjs must agree with the upstream test suites.
 - **CLI invoices.** Real invoices printed by `rgb-cmd` 0.11.1 and `rgb-wallet` 0.12.0-rc.3, with the inputs that produced them.
+- **A v0.12 transfer.** Made offline by `rust/gen-v012` and accepted by the pinned `rgb-wallet`.
 - **Contract consignments from both CLIs.** Exported by `rgb-cmd` 0.11.1 and `rgb-wallet` 0.12.0-rc.3. Each is checked as valid. Every single-byte corruption of each is checked too: it must be rejected, or come out as a different contract, an untrusted schema or issuer, or a different state.
 
 ## Build

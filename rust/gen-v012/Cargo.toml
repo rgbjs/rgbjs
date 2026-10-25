@@ -1,0 +1,15 @@
+[package]
+name = "gen-v012"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Makes v0.12 transfer test vectors offline with rgb-runtime 0.12.0-rc.3 and a made-up funding transaction"
+license = "MIT"
+
+[dependencies]
+amplify = "4.9.0"
+bp-std = { version = "0.12.0-rc.3", features = ["client-side-validation"] }
+rgb-std = { version = "0.12.0-rc.3", features = ["bitcoin", "binfile", "uri"] }
+rgb-runtime = { version = "0.12.0-rc.3", features = ["fs", "serde"] }
+rgb-persist-fs = "0.12.0-rc.3"
+serde_yaml = "0.9.19"

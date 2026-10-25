@@ -80,24 +80,41 @@ test('v0.12 contract consignment from rgb-wallet 0.12.0-rc.3 is valid', () => {
     [['b7116550736fbe5d3e234d0141c6bc8d1825f94da78514a3cede5674e9a5eae9:1', '10000']])
 })
 
-test('v0.12: no single-byte corruption passes as the same trusted contract and state', () => {
-  // A flip may land in the semantics, which the contract ID doesn't commit
-  // to (then the issuer must no longer be trusted), or in a revealed seal
-  // definition (then that allocation must drop out of the state).
-  const { contractId, state } = validateConsignment(token)
-  const same = JSON.stringify(state)
-  let checked = 0
-  for (let i = 8; i < token.length; i++) {
-    const bad = token.slice()
-    bad[i] ^= 0x01
-    let r
-    try { r = validateConsignment(bad) } catch { continue }
-    checked++
-    assert.ok(!r.valid || r.contractId !== contractId || !r.issuer.trusted || JSON.stringify(r.state) !== same,
-      `byte ${i} flipped but still valid and trusted as ${contractId} with the same state`)
-  }
-  assert.ok(checked > 0)
+const transfer = file('./vectors/v012/TransferDemo.transfer.rgb')
+
+test('v0.12 transfer consignment (made by rust/gen-v012) is valid', () => {
+  const r = validateConsignment(transfer)
+  assert.equal(r.valid, true, r.error)
+  assert.equal(r.contractId, 'contract:KA73QdAH-BFBUNYX-0jsaAXq-_wKsXwD-2VLkZ9Q-1yRYYkc')
+  assert.equal(r.issuer.trusted, true)
+  assert.equal(r.operations, 1)
+  assert.deepEqual(r.witnesses, [{ txid: 'fb0edb5f47e6c6c5f43ad8d0eb9a989da3c6cf5dd44988df76046e8a07d849fc', status: 'tentative' }])
+  // Alice paid Bob 10 of 10000. Bob's seal is blinded, so only her change shows.
+  assert.deepEqual(r.state.owned.balance.map(c => [c.outpoint, c.value]),
+    [['fb0edb5f47e6c6c5f43ad8d0eb9a989da3c6cf5dd44988df76046e8a07d849fc:1', '9990']])
 })
+
+for (const [name, bytes] of [['DemoToken.rgb', token], ['TransferDemo.transfer.rgb', transfer]]) {
+  test(`v0.12 ${name}: no single-byte corruption passes as the same trusted contract and state`, () => {
+    // A flip may land in the semantics, which the contract ID doesn't commit
+    // to (then the issuer must no longer be trusted), or in a revealed seal
+    // definition (then that allocation must drop out of the state).
+    const base = validateConsignment(bytes)
+    const same = JSON.stringify([base.state, base.witnesses])
+    let checked = 0
+    for (let i = 8; i < bytes.length; i++) {
+      const bad = bytes.slice()
+      bad[i] ^= 0x01
+      let r
+      try { r = validateConsignment(bad) } catch { continue }
+      checked++
+      assert.ok(!r.valid || r.contractId !== base.contractId || !r.issuer.trusted ||
+        JSON.stringify([r.state, r.witnesses]) !== same,
+      `byte ${i} flipped but still valid and trusted as ${base.contractId} with the same state`)
+    }
+    assert.ok(checked > 0)
+  })
+}
 
 test('v0.12 issuer file parses to the ID consignments report', () => {
   const issuer = v012.parseIssuer(file('../rust/v012/issuers/RGB20-FNA.issuer'))
