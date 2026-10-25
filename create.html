@@ -90,6 +90,8 @@
       <label id="i-supply-wrap">Supply, in the smallest unit <input id="i-supply" class="mono" value="1000000"></label>
       <label id="i-max-wrap" class="hidden">Maximum supply (IFA) <input id="i-max" class="mono" value="1500000"></label>
       <label id="i-token-wrap" class="hidden">Token index (UDA) <input id="i-token" type="number" min="0" value="1"></label>
+      <label id="i-tokenname-wrap" class="hidden">Token name (NFT) <input id="i-tokenname" value="Token one" maxlength="40"></label>
+      <label id="i-image-wrap" class="hidden">Image (NFT, optional, up to 60 KB) <input id="i-image" type="file" accept="image/*"></label>
       <label id="i-pubkey-wrap" class="hidden wide">Issuer public key (PFA, 33 bytes hex): transfers must be signed by its private key <input id="i-pubkey" class="mono" placeholder="02…"></label>
       <label class="wide">Owner outpoint: a UTXO you control that will hold the asset <input id="i-outpoint" class="mono" placeholder="txid:vout"></label>
       <label id="i-inflation-wrap" class="hidden wide">Inflation outpoint (IFA): holds the right to issue more <input id="i-inflation" class="mono" placeholder="txid:vout"></label>
@@ -146,11 +148,12 @@ const OUTPOINT = /^[0-9a-f]{64}:\d+$/i
 const PRECISION = ['indivisible', 'deci', 'centi', 'milli', 'deciMilli', 'centiMilli', 'micro', 'deciMicro', 'centiMicro', 'nano', 'deciNano', 'centiNano', 'pico', 'deciPico', 'centiPico', 'femto', 'deciFemto', 'centiFemto', 'atto']
 const SCHEMAS = {
   'v0.11': [['NIA', 'NIA: fungible token, fixed supply'], ['CFA', 'CFA: collectible fungible asset'], ['UDA', 'UDA: one unique token (NFT)'], ['IFA', 'IFA: fungible, can be inflated'], ['PFA', 'PFA: fungible, transfers need the issuer\'s signature']],
-  'v0.12': [['FNA', 'RGB20 FNA: fungible token, fixed supply'], ['UFA', 'RGB25 UFA: uniquely fungible asset']]
+  'v0.12': [['FNA', 'RGB20 FNA: fungible token, fixed supply'], ['UFA', 'RGB25 UFA: uniquely fungible asset'], ['NFT', 'RGB21 NFT: one unique token']]
 }
 const ISSUERS = {
   FNA: { codexId: '7C15w3W1-L0T~zXw-Aeh5~kV-Zquz729-HXQFKQW-_5lX9O8', version: 0, checksum: 'AYkSrg' },
-  UFA: { codexId: 'mqmGvodN-WxpxyRb-RsGHiTQ-jDoRvMy-ClhrQGx-FMa5Cpw', version: 0, checksum: 'aiRB3w' }
+  UFA: { codexId: 'mqmGvodN-WxpxyRb-RsGHiTQ-jDoRvMy-ClhrQGx-FMa5Cpw', version: 0, checksum: 'aiRB3w' },
+  NFT: { codexId: '1T9uRsVB-_A8owmV-mv9SMiF-vgFFjN2-kxd9AZz-lpU8K1A', version: 0, checksum: 'FtU80Q' }
 }
 
 // Tabs
@@ -172,8 +175,10 @@ function refreshIssueForm () {
   const show = (id, on) => $(id).classList.toggle('hidden', !on)
   show('#i-network-wrap', line === 'v0.11')
   show('#i-ticker-wrap', !['CFA', 'UFA'].includes(s))
-  show('#i-supply-wrap', s !== 'UDA')
-  show('#i-precision-wrap', s !== 'UDA')
+  show('#i-supply-wrap', !['UDA', 'NFT'].includes(s))
+  show('#i-precision-wrap', !['UDA', 'NFT'].includes(s))
+  show('#i-tokenname-wrap', s === 'NFT')
+  show('#i-image-wrap', s === 'NFT')
   show('#i-max-wrap', s === 'IFA')
   show('#i-inflation-wrap', s === 'IFA')
   show('#i-token-wrap', s === 'UDA')
@@ -217,12 +222,26 @@ $('#i-go').addEventListener('click', async () => {
       bytes = rgb.v011.issueContract(params)
     } else {
       const seed = randomSeed()
-      const global = schema === 'FNA'
-        ? [{ name: 'ticker', verified: ticker }, { name: 'name', verified: name }, { name: 'precision', verified: PRECISION[precision] }, { name: 'issued', verified: Number(supply) }]
-        : [{ name: 'details', verified: null, unverified: $('#i-terms').value || 'none' }, { name: 'name', verified: name }, { name: 'precision', verified: PRECISION[precision] }, { name: 'issued', verified: Number(supply) }]
-      if (PRECISION[precision] === undefined) throw new Error('Decimal places must be 0 to 18.')
-      if (!/^\d+$/.test(supply) || Number(supply) > Number.MAX_SAFE_INTEGER) throw new Error('The supply must be a whole number up to 9007199254740991 here.')
-      const params = { consensus: 'bitcoin', testnet: true, issuer: ISSUERS[schema], name: name.replace(/[^A-Za-z0-9_]/g, '') || 'Token', method: 'issue', timestamp: new Date().toISOString(), global, owned: [{ name: 'balance', seal: outpoint, data: Number(supply) }] }
+      let global, owned
+      if (schema === 'NFT') {
+        // RGB21 token data: the image is embedded in the contract as bytes.
+        const file = $('#i-image').files[0]
+        if (file && file.size > 60000) throw new Error('The image is over 60 KB. Use a smaller one: it is stored in the contract itself.')
+        const tokenName = $('#i-tokenname').value.trim() || name
+        const [type, subtype] = file ? (file.type || 'image/png').split('/') : ['text', 'plain']
+        const data = file ? [...new Uint8Array(await file.arrayBuffer())] : [...new TextEncoder().encode(tokenName)]
+        global = [{ name: 'ticker', verified: ticker }, { name: 'name', verified: name }, { name: 'maxFractions', verified: 1 },
+          { name: 'token', verified: 1, unverified: { name: tokenName, embedded: { mime: { type, subtype, charset: null }, data }, external: null, reserves: null } }]
+        owned = [{ name: 'balance', seal: outpoint, data: { tokenNo: 1, fractions: 1 } }]
+      } else {
+        global = schema === 'FNA'
+          ? [{ name: 'ticker', verified: ticker }, { name: 'name', verified: name }, { name: 'precision', verified: PRECISION[precision] }, { name: 'issued', verified: Number(supply) }]
+          : [{ name: 'details', verified: null, unverified: $('#i-terms').value || 'none' }, { name: 'name', verified: name }, { name: 'precision', verified: PRECISION[precision] }, { name: 'issued', verified: Number(supply) }]
+        if (PRECISION[precision] === undefined) throw new Error('Decimal places must be 0 to 18.')
+        if (!/^\d+$/.test(supply) || Number(supply) > Number.MAX_SAFE_INTEGER) throw new Error('The supply must be a whole number up to 9007199254740991 here.')
+        owned = [{ name: 'balance', seal: outpoint, data: Number(supply) }]
+      }
+      const params = { consensus: 'bitcoin', testnet: true, issuer: ISSUERS[schema], name: name.replace(/[^A-Za-z0-9_]/g, '') || 'Token', method: 'issue', timestamp: new Date().toISOString(), global, owned }
       bytes = rgb.v012.issueContract(params, seed)
       secrets = { line, kind: 'contract', outpoint, noiseSeed: hex(seed) }
     }

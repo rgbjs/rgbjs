@@ -16,6 +16,7 @@ export const v011Created = {
 
 const fnaIssuer = { codexId: '7C15w3W1-L0T~zXw-Aeh5~kV-Zquz729-HXQFKQW-_5lX9O8', version: 0, checksum: 'AYkSrg' }
 const ufaIssuer = { codexId: 'mqmGvodN-WxpxyRb-RsGHiTQ-jDoRvMy-ClhrQGx-FMa5Cpw', version: 0, checksum: 'aiRB3w' }
+const nftIssuer = { codexId: '1T9uRsVB-_A8owmV-mv9SMiF-vgFFjN2-kxd9AZz-lpU8K1A', version: 0, checksum: 'FtU80Q' }
 const v012Base = { consensus: 'bitcoin', testnet: true, method: 'issue', timestamp: '2026-10-25T12:00:00+00:00' }
 export const v012Created = {
   fna: {
@@ -31,5 +32,15 @@ export const v012Created = {
     name: 'CreatedUfa',
     global: [{ name: 'details', verified: null, unverified: 'Test asset.' }, { name: 'name', verified: 'Created UFA' }, { name: 'precision', verified: 'centi' }, { name: 'issued', verified: 900 }],
     owned: [{ name: 'balance', seal: OUT_A, data: 900 }]
+  },
+  nft: {
+    ...v012Base,
+    issuer: nftIssuer,
+    name: 'CreatedNft',
+    global: [
+      { name: 'ticker', verified: 'CNFT' }, { name: 'name', verified: 'Created NFT' }, { name: 'maxFractions', verified: 1 },
+      { name: 'token', verified: 1, unverified: { name: 'Token one', embedded: { mime: { type: 'image', subtype: 'png', charset: null }, data: [137, 80, 78, 71] }, external: null, reserves: null } }
+    ],
+    owned: [{ name: 'balance', seal: OUT_A, data: { tokenNo: 1, fractions: 1 } }]
   }
 }
