@@ -15,6 +15,10 @@ rgb-ops = "=0.11.1"
 rgb-schemas = "=0.11.1"
 serde_json = "1"
 wasm-bindgen = "0.2"
+# Not used directly: turns on `lowmemory` for the two secp256k1 copies that
+# rgb-consensus pulls in, shrinking their precomputed tables in the wasm.
+secp256k1-sys-010 = { package = "secp256k1-sys", version = "=0.10.1", features = ["lowmemory"] }
+secp256k1-sys-014 = { package = "secp256k1-sys", version = "=0.14.1", features = ["lowmemory"] }
 
 [profile.release]
 opt-level = "s"

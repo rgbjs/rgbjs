@@ -800,6 +800,7 @@ dependencies = [
  "hypersonic",
  "rgb-invoice",
  "rgb-std",
+ "secp256k1-sys",
  "serde_json",
  "sonic-callreq",
  "strict_encoding",

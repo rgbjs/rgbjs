@@ -75,7 +75,7 @@ Both lines run the reference validator. **Witness transactions aren't looked up 
 
 - v0.12 invoices print as `contract:tb@contract:<id>/...` instead of `contract:tb@<id>/...` ([AluVM/sonic#27](https://github.com/AluVM/sonic/issues/27)). The cause is that `CallScope`'s `Display` doesn't pass the `{:-}` flag on to `ContractId`. Both forms parse to the same invoice.
 - The 0.11.2 consignment format (rgb-api 0.11.2-rc.1) can't be read. 0.11.1 is pinned until 0.11.2 is final.
-- `wasm/v011` is about 4.9 MB (2.8 MB gzipped). Most of that is two copies of secp256k1 pulled in by upstream dependencies.
+- Size: `wasm/v011` is 2.9 MB (680 KB gzipped) and `wasm/v012` 1.7 MB (420 KB gzipped). secp256k1 is built with `lowmemory` to keep its precomputed tables small, which makes signature checks a little slower. `rgb-consensus` 0.11.1 still pulls in two secp256k1 versions.
 - The transfer vectors come from `rust/gen-v011` and `rust/gen-v012`, which drive `rgb-api` 0.11.1 and `rgb-runtime` 0.12.0-rc.3 with a made-up funding transaction instead of an indexer. The pinned `rgb-wallet` accepts the v0.12 one. The pinned `rgb-cmd` 0.11.1 can't check the v0.11 one offline, because its `validate` and `accept` look witnesses up on chain.
 
 ## Tests

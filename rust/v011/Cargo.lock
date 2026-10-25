@@ -917,6 +917,8 @@ dependencies = [
  "rgb-invoicing",
  "rgb-ops",
  "rgb-schemas",
+ "secp256k1-sys 0.10.1",
+ "secp256k1-sys 0.14.1",
  "serde_json",
  "wasm-bindgen",
 ]
