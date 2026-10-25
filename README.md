@@ -94,11 +94,14 @@ const p = v012.payInvoice({
   descriptor: '[fp/86h/1h/0h]tpub…/<0;1>/*',  // v012.deriveAddress(descriptor, '&0/0') gives its addresses
   coins: [{ outpoint: 'txid:vout', sats: 50000, terminal: '&0/0', tx: '<hex of the transaction that made it>' }],
   seals: [{ outpoint, nonce }],               // your invoices that were paid
-  fee: 500, noiseSeed })                      // the 32-byte seed your contracts and invoices used
+  fee: 500, noiseSeed,                        // the 32-byte seed your contracts and invoices used
+  commit: 'tapret' })                         // or 'opret' (the default): see below
 p.psbt       // base64; sign and broadcast it, then
 p.transfer   // give this to the payee
 p.backup     // keep this: pay from it next time (the change is p.change.vout of p.txid)
 ```
+
+The commitment goes in an OP_RETURN output (`opret`, what rgb-wallet 0.12.0-rc.3 always makes), or with `commit: 'tapret'` inside the change output's taproot key, so the transaction has no OP_RETURN and its change looks like any taproot output. Nodes that limit OP_RETURN data don't affect tapret. A tapret change coin is at `p.tapret.scriptPubkey`, not the descriptor's plain address: to spend it later, sign with the key tweaked by `p.tapret.merkleRoot` (BIP341).
 
 Are the witnesses mined? This is the only rgbjs call that uses the network, and only the transaction IDs are sent:
 

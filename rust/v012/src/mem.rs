@@ -5,6 +5,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::marker::PhantomData;
 
+use indexmap::IndexMap;
+
 use amplify::confinement::SmallOrdMap;
 use amplify::MultiError;
 use hypersonic::{
@@ -22,8 +24,11 @@ pub struct NotPersistent;
 
 #[derive(Debug)]
 pub struct StockMem {
-    stash: BTreeMap<Opid, Operation>,
-    trace: BTreeMap<Opid, Transition>,
+    // Insertion order, as the file-backed stash is an append-only log: export
+    // writes operations in this order, and a verifier must see each one
+    // before the operations that spend its outputs.
+    stash: IndexMap<Opid, Operation>,
+    trace: IndexMap<Opid, Transition>,
     valid: BTreeMap<Opid, bool>,
     spent: BTreeMap<CellAddr, Opid>,
     read: BTreeMap<CellAddr, Vec<Opid>>,

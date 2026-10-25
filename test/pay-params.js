@@ -40,4 +40,4 @@ export const contractId = validateConsignment(contract).contractId
 
 export const bobInvoice = v012.createInvoice({ contractId, value: 1000, outpoint: bobCoin.outpoint, noiseSeed: BOB, nonce: 0 })
 
-export const toBob = () => v012.payInvoice({ contracts: contract, invoice: bobInvoice.invoice, descriptor: KEY, coins: [aliceCoin], fee: 500, noiseSeed: ALICE })
+export const toBob = (o = {}) => v012.payInvoice({ contracts: contract, invoice: bobInvoice.invoice, descriptor: KEY, coins: [aliceCoin], fee: 500, noiseSeed: ALICE, ...o })

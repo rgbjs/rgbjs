@@ -67,3 +67,38 @@ test('payInvoice refuses overspending and inconsistent input', () => {
   assert.throws(() => pay({ contracts: contract, invoice: bobInvoice.invoice, coins: [aliceCoin], noiseSeed: ALICE.slice(0, 16) }), /32 bytes/)
   assert.throws(() => pay({ contracts: new Uint8Array(20), invoice: bobInvoice.invoice, coins: [aliceCoin], noiseSeed: ALICE }), /RGBCNSGN/)
 })
+
+test('payInvoice with commit: tapret has no OP_RETURN and commits in the change output', () => {
+  const p = pay({ contracts: contract, invoice: bobInvoice.invoice, coins: [aliceCoin], noiseSeed: ALICE, commit: 'tapret' })
+  assert.equal(p.tapret.vout, p.change.vout, 'the change is the host')
+  assert.match(p.tapret.scriptPubkey, /^5120[0-9a-f]{64}$/)
+  assert.ok(p.tx.includes(`22${p.tapret.scriptPubkey}`), 'the change pays to the tweaked key')
+  assert.ok(!p.tx.includes('00000000000000226a20'), 'no OP_RETURN output')
+  assert.notEqual(p.tapret.scriptPubkey, `5120${v012.deriveAddress(KEY, p.change.terminal).scriptPubkey.slice(4)}`, 'not the plain address')
+  assert.equal(validateConsignment(p.transfer).valid, true)
+  assert.deepEqual(got(p.transfer, bobCoin.outpoint, BOB, 0), ['1000'])
+  assert.throws(() => pay({ contracts: contract, invoice: bobInvoice.invoice, coins: [aliceCoin], noiseSeed: ALICE, commit: 'p2c' }), /opret.*tapret/)
+})
+
+// Operations must be written in the order they happened: a later payment
+// listed before the one it spends fails to validate. This chain alternates
+// commit methods, so its opids sort differently from its history.
+test('a chain of five payments from change validates at every step', () => {
+  let files = contract
+  let coin = aliceCoin
+  let left = 5000
+  for (const [n, commit] of ['opret', 'tapret', 'tapret', 'opret', 'tapret'].entries()) {
+    const to = `${(0xd0 + n).toString(16).repeat(32)}:0`
+    const inv = v012.createInvoice({ contractId, value: 100, outpoint: to, noiseSeed: CAROL, nonce: 10 + n })
+    const p = pay({ contracts: files, invoice: inv.invoice, coins: [coin], noiseSeed: ALICE, commit })
+    const v = validateConsignment(p.transfer)
+    assert.equal(v.valid, true, `payment ${n + 1} (${commit}): ${v.error}`)
+    assert.equal(v.witnesses.length, n + 1)
+    assert.deepEqual(got(p.transfer, to, CAROL, 10 + n), ['100'])
+    assert.equal(validateConsignment(p.backup).valid, true, `backup ${n + 1}`)
+    left -= 100
+    files = p.backup
+    coin = { outpoint: `${p.txid}:${p.change.vout}`, sats: coin.sats - 500, terminal: p.change.terminal, tx: p.tx }
+  }
+  assert.equal(left, 4500)
+})

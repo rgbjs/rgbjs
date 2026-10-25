@@ -70,14 +70,24 @@ export const receive = (bytes, { outpoint, noiseSeed, nonce = 0 }) => call(wasm.
  * outputs you may spend, [{ outpoint, sats, terminal, tx }] with the hex of
  * the transaction that made each; `seals` are your invoices' { outpoint,
  * nonce }; `noiseSeed` is the 32-byte secret they were made with. `fee` is
- * in sats. rgb-wallet 0.12.0-rc.3 always commits with an OP_RETURN output.
+ * in sats.
+ *
+ * `commit` is 'opret' (an OP_RETURN output, as rgb-wallet 0.12.0-rc.3 always
+ * makes) or 'tapret': the commitment goes inside the change output's taproot
+ * key, so the transaction has no OP_RETURN and its change looks like any
+ * taproot output. Then `tapret` in the result is { vout, merkleRoot,
+ * scriptPubkey }: sign for that coin later with the key tweaked by
+ * `merkleRoot` (BIP341), and find it at that scriptPubKey, not at the
+ * descriptor's plain address. The PSBT's own record of a tapret coin's script
+ * is the plain one (rgb-runtime 0.12.0-rc.3 picks the first derived script),
+ * so sign with the script you saved.
  */
-export function payInvoice ({ contracts, invoice, descriptor, coins, seals = [], fee, giveaway, noiseSeed }) {
+export function payInvoice ({ contracts, invoice, descriptor, coins, seals = [], fee, giveaway, noiseSeed, commit = 'opret' }) {
   const files = Array.isArray(contracts) ? contracts : [contracts]
   const all = new Uint8Array(files.reduce((n, f) => n + 4 + f.length, 0))
   let at = 0
   for (const f of files) { new DataView(all.buffer).setUint32(at, f.length); all.set(f, at + 4); at += 4 + f.length }
-  const r = call(wasm.payInvoice, all, JSON.stringify({ descriptor, coins, seals, invoice, fee, giveaway }), noiseSeed)
+  const r = call(wasm.payInvoice, all, JSON.stringify({ descriptor, coins, seals, invoice, fee, giveaway, commit }), noiseSeed)
   const bytes = h => Uint8Array.from(h.match(/../g), x => parseInt(x, 16))
   r.transfer = bytes(r.transfer)
   r.backup = bytes(r.backup)

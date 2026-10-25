@@ -24,7 +24,10 @@ use rgb::{
 };
 use rgbp::descriptors::RgbDescr;
 use rgbp::resolvers::{Resolver, ResolverError};
-use rgbp::{CoinselectStrategy, Holder, MemUtxos, Owner, RgbRuntime, UtxoSet};
+use amplify::ByteArray;
+use bpstd::{TapScript, TapTree};
+use commit_verify::CommitVerify;
+use rgbp::{CoinselectStrategy, Holder, MemUtxos, Owner, Payment, RgbRuntime, UtxoSet};
 use serde::Deserialize;
 use serde_json::json;
 use strict_encoding::{StreamReader, StreamWriter, StrictReader, StrictWriter};
@@ -33,6 +36,7 @@ use wasm_bindgen::prelude::*;
 use crate::mem::{NotPersistent, PileMem, StockMem};
 
 type Res<T> = Result<T, String>;
+type Runtime = RgbRuntime<Owner<Offline, Holder>, MemStockpile>;
 
 /// Knows only the transactions it was given, and never broadcasts.
 struct Offline(HashMap<Txid, UnsignedTx>);
@@ -135,6 +139,11 @@ struct PayParams {
     /// (a witness-out invoice) rather than naming an existing one.
     #[serde(default)]
     giveaway: Option<u64>,
+    /// How the witness transaction commits: `opret` (an OP_RETURN output,
+    /// the default) or `tapret` (inside the change output's taproot key, so
+    /// the transaction has no OP_RETURN and looks like any taproot payment).
+    #[serde(default)]
+    commit: Option<String>,
 }
 
 /// Pays a v0.12 invoice from the given wallet.
@@ -182,7 +191,7 @@ pub fn pay_invoice(contracts: &[u8], params: &str, noise_seed: &[u8]) -> Res<Str
 
     let wallet = Owner::with_components(Network::Testnet4, Holder::with_components(descriptor, utxos), Offline(txs));
     let contracts_db: Contracts<MemStockpile> = Contracts::load(MemStockpile::default());
-    let mut runtime = RgbRuntime::from(RgbWallet::with_components(wallet, contracts_db));
+    let mut runtime: Runtime = RgbRuntime::from(RgbWallet::with_components(wallet, contracts_db));
 
     // Each file is read twice when needed: the first import of an unknown
     // contract takes only the seals inside the file, then consuming it again
@@ -206,14 +215,20 @@ pub fn pay_invoice(contracts: &[u8], params: &str, noise_seed: &[u8]) -> Res<Str
         return Err(format!("none of the files is for contract {}", invoice.scope));
     }
 
-    let (psbt, payment) = runtime
-        .pay_invoice(
-            &invoice,
-            CoinselectStrategy::Aggregate,
-            TxParams::with(Sats::from_sats(params.fee)),
-            params.giveaway.map(Sats::from_sats),
-        )
-        .map_err(|e| format!("payment: {e}"))?;
+    let tx_params = TxParams::with(Sats::from_sats(params.fee));
+    let giveaway = params.giveaway.map(Sats::from_sats);
+    let (psbt, payment) = match params.commit.as_deref().unwrap_or("opret") {
+        "opret" => runtime
+            .pay_invoice(&invoice, CoinselectStrategy::Aggregate, tx_params, giveaway)
+            .map_err(|e| format!("payment: {e}"))?,
+        "tapret" => pay_tapret(&mut runtime, &invoice, tx_params, giveaway)?,
+        other => return Err(format!("commit must be `opret` or `tapret`, not `{other}`")),
+    };
+    let tapret = psbt.outputs().find(|o| o.is_tapret_host() && o.tapret_commitment().is_ok()).map(|o| {
+        let commitment = o.tapret_commitment().expect("checked");
+        let root = TapTree::with_single_leaf(TapScript::commit(&commitment)).merkle_root();
+        json!({ "vout": o.index(), "merkleRoot": hex(&root.to_byte_array()), "scriptPubkey": hex(o.script.as_slice()) })
+    });
 
     let mut transfer = Vec::new();
     transfer.extend_from_slice(crate::CONSIGN_MAGIC);
@@ -231,7 +246,6 @@ pub fn pay_invoice(contracts: &[u8], params: &str, noise_seed: &[u8]) -> Res<Str
         .contracts
         .export(invoice.scope, StrictWriter::with(StreamWriter::new::<{ usize::MAX }>(&mut backup)))
         .map_err(|e| format!("backup: {e}"))?;
-    let hex = |b: &[u8]| b.iter().map(|b| format!("{b:02x}")).collect::<String>();
     let tx: Tx = psbt.to_unsigned_tx().into();
 
     let change = payment.psbt_meta.change.map(|c| json!({ "vout": c.vout.to_u32(), "terminal": c.terminal.to_string() }));
@@ -241,11 +255,65 @@ pub fn pay_invoice(contracts: &[u8], params: &str, noise_seed: &[u8]) -> Res<Str
         "txid": psbt.txid().to_string(),
         "fee": params.fee,
         "change": change,
+        "tapret": tapret,
         "tx": tx.to_string(),
         "transfer": hex(&transfer),
         "backup": hex(&backup),
     })
     .to_string())
+}
+
+fn hex(b: &[u8]) -> String { b.iter().map(|b| format!("{b:02x}")).collect() }
+
+/// `RgbRuntime::pay_invoice` with the change output as the tapret host
+/// instead of an added OP_RETURN output: rgb-runtime 0.12.0-rc.3 always adds
+/// one, so this runs its steps (fulfill, compose, resolve, bundle, fill,
+/// complete) with that one difference.
+fn pay_tapret(
+    runtime: &mut Runtime,
+    invoice: &RgbInvoice<ContractId>,
+    params: TxParams,
+    giveaway: Option<Sats>,
+) -> Res<(bpstd::Psbt, Payment)> {
+    use rgb::popls::bp::OpRequestSet;
+    use rgb::invoice::RgbBeneficiary;
+    use rgb::RgbSealDef;
+    use rgbpsbt::{RgbPsbt, ScriptResolver};
+
+    let request = runtime
+        .fulfill(invoice, CoinselectStrategy::Aggregate, giveaway)
+        .map_err(|e| format!("payment: {e}"))?;
+    let script = OpRequestSet::with(request.clone());
+    let (mut psbt, meta) = runtime.compose_psbt(&script, params).map_err(|e| format!("payment: {e}"))?;
+    let change = meta.change.ok_or("a tapret commitment goes in the change output, and this payment has none")?;
+    // The commitment goes in the first taproot output, which must be ours.
+    let first = psbt.outputs().find(|o| o.script.is_p2tr()).map(|o| o.index());
+    if first != Some(change.vout.into_usize()) {
+        return Err("the payee's taproot output comes before the change, so the commitment can't go in the change; use commit: 'opret'".into());
+    }
+    psbt.output_mut(change.vout.into_usize())
+        .expect("change output")
+        .set_tapret_host()
+        .map_err(|e| format!("tapret host: {e}"))?;
+    psbt.complete_construction();
+    let resolved = script
+        .resolve_seals(psbt.script_resolver(), Some(change.vout))
+        .map_err(|_| "the payment needs a change output for the remaining state".to_string())?;
+    let bundle = runtime.bundle(resolved, Some(change.vout)).map_err(|e| format!("payment: {e}"))?;
+    psbt.rgb_fill_csv(&bundle).map_err(|e| format!("payment: {e}"))?;
+    let mut payment = Payment { uncomit_psbt: psbt.clone(), psbt_meta: meta, bundle, terminals: none!() };
+    let psbt = runtime
+        .complete(payment.uncomit_psbt.clone(), &payment.bundle)
+        .map_err(|e| format!("payment: {e}"))?;
+    let terminal = match invoice.auth {
+        RgbBeneficiary::Token(auth) => auth,
+        RgbBeneficiary::WitnessOut(wout) => request
+            .resolve_seal(wout, psbt.script_resolver())
+            .ok_or("the payee's output is missing from the transaction")?
+            .auth_token(),
+    };
+    payment.terminals.insert(terminal);
+    Ok((psbt, payment))
 }
 
 fn split(mut bytes: &[u8]) -> Res<Vec<&[u8]>> {
@@ -284,3 +352,4 @@ pub fn derive_address(descriptor: &str, terminal: &str) -> Res<String> {
     let address = Address::with(&spk, Network::Testnet4).map_err(|e| e.to_string())?;
     Ok(json!({ "address": address.to_string(), "scriptPubkey": spk.as_slice().iter().map(|b| format!("{b:02x}")).collect::<String>() }).to_string())
 }
+
