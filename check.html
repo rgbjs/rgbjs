@@ -224,7 +224,7 @@ function chainPanel (r, paid) {
   const go = el('button', { type: 'button' }, `Look up ${txids.length} witness transaction${txids.length === 1 ? '' : 's'}`)
   const note = el('p', { class: 'lede' }, r.network === 'regtest'
     ? 'This is a regtest consignment: use your own regtest Esplora server.'
-    : 'This sends the transaction IDs, and nothing else, to the server you pick.')
+    : 'This sends the transaction IDs, and nothing else, to the server you pick. For the BLAKE2b testnet4 it also loads the header checker from bitcoin-blake.github.io and cdn.jsdelivr.net, and asks Nostr relays for the signed chain tip; no transaction IDs go to those.')
   const out = el('div', { 'aria-live': 'polite' })
   go.addEventListener('click', async () => {
     const server = pick.value === 'custom' ? custom.value.trim() : engine.ESPLORA[pick.value]
