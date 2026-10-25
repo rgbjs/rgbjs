@@ -18,6 +18,12 @@ test('v0.11 contract consignment from rgb-cmd 0.11.1 is valid', () => {
   assert.equal(r.network, 'regtest')
   assert.deepEqual(r.witnesses, [])
   assert.deepEqual(r.terminals, [])
+  // demo.yaml: 1000000 DEMO on the genesis coinbase output
+  assert.deepEqual(r.state.global.issuedSupply, ['1000000'])
+  assert.match(r.state.global.spec[0], /ticker "DEMO"/)
+  assert.deepEqual(r.state.owned.assetOwner, [{
+    seal: '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0', value: '1000000', witness: null, spent: false
+  }])
 })
 
 const transfer011 = file('./vectors/v011/transfer-demo.transfer.rgb')
@@ -31,13 +37,19 @@ test('v0.11 transfer consignment (made by rust/gen-v011) is valid', () => {
   assert.deepEqual(r.witnesses, [{ txid: '2c54de909cbaf40fc2dedeaef1ae310442cdad45cc094f78293f63d7a94befa5', included: true }])
   // The invoice was rgb:epeKJw9q-…/~/BF/bcrt:utxob:dTwHqt40-…: Bob's blinded seal is the terminal.
   assert.deepEqual(r.terminals.flatMap(t => t.seals), ['utxob:dTwHqt40-IEPM8Yu-nFIXTvY-va2Nh7Y-xXpTu2P-F5DqjgD-0Hh4B'])
+  // 100 went to Bob's blinded seal, so only the spent genesis output and the change show.
+  const w = '2c54de909cbaf40fc2dedeaef1ae310442cdad45cc094f78293f63d7a94befa5'
+  assert.deepEqual(r.state.owned.assetOwner, [
+    { seal: '07623012f9268485f2135cbaa2c8cc2966b08b01439e27cb40be8f68147cc1c6:0', value: '1000000', witness: null, spent: true },
+    { seal: `${w}:1`, value: '999900', witness: w, spent: false }
+  ])
 })
 
 test('v0.11 transfer: no single-byte corruption passes as the same valid transfer', () => {
   const base = validateConsignment(transfer011)
   // A flip in the terminals leaves a valid consignment that no longer names
   // the recipient's seal; that must show in `terminals`.
-  const same = JSON.stringify([base.witnesses, base.terminals])
+  const same = JSON.stringify([base.witnesses, base.terminals, base.state])
   let checked = 0
   for (let i = 7; i < transfer011.length; i++) {
     const bad = transfer011.slice()
@@ -45,7 +57,7 @@ test('v0.11 transfer: no single-byte corruption passes as the same valid transfe
     let r
     try { r = validateConsignment(bad) } catch { continue }
     checked++
-    assert.ok(!r.valid || r.contractId !== base.contractId || JSON.stringify([r.witnesses, r.terminals]) !== same,
+    assert.ok(!r.valid || r.contractId !== base.contractId || JSON.stringify([r.witnesses, r.terminals, r.state]) !== same,
       `byte ${i} flipped but still valid as the same transfer`)
   }
   assert.ok(checked > 0)
@@ -59,7 +71,8 @@ test('knownSchemas lists the five rgb-schemas 0.11.1 schemas', () => {
 test('no single-byte corruption passes as the same valid contract', () => {
   // Flip one byte at a time across the body. Each result must throw, be
   // invalid, or (if the flip hit genesis data) be a different contract.
-  const { contractId } = validateConsignment(contract)
+  const { contractId, state } = validateConsignment(contract)
+  const same = JSON.stringify(state)
   let checked = 0
   for (let i = 7; i < contract.length; i++) {
     const bad = contract.slice()
@@ -67,7 +80,8 @@ test('no single-byte corruption passes as the same valid contract', () => {
     let r
     try { r = validateConsignment(bad) } catch { continue }
     checked++
-    assert.ok(!r.valid || r.contractId !== contractId, `byte ${i} flipped but still valid as ${contractId}`)
+    assert.ok(!r.valid || r.contractId !== contractId || JSON.stringify(r.state) !== same,
+      `byte ${i} flipped but still valid as ${contractId} with the same state`)
   }
   assert.ok(checked > 0)
 })

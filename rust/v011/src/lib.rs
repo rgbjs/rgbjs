@@ -161,8 +161,12 @@ fn report<const T: bool>(
     chain_net: ChainNet,
     witnesses: Vec<(Txid, bool)>,
     terminals: Value,
+    resolver: &OfflineResolver,
     res: Result<ValidConsignment<T>, ValidationError>,
-) -> String {
+) -> String
+where
+    ValidConsignment<T>: Import,
+{
     let witnesses: Vec<_> = witnesses
         .into_iter()
         .map(|(txid, included)| json!({"txid": txid.to_string(), "included": included}))
@@ -184,6 +188,10 @@ fn report<const T: bool>(
             out.insert("valid".into(), json!(true));
             out.insert("warnings".into(), json!(status.warnings.iter().map(|w| w.to_string()).collect::<Vec<_>>()));
             out.insert("info".into(), json!(status.info.iter().map(|i| i.to_string()).collect::<Vec<_>>()));
+            match contract_state(valid, resolver) {
+                Ok(state) => out.insert("state".into(), state),
+                Err(e) => out.insert("stateError".into(), json!(e)),
+            };
         }
         Err(ValidationError::InvalidConsignment(failure)) => {
             out.insert("valid".into(), json!(false));
@@ -195,6 +203,66 @@ fn report<const T: bool>(
         }
     }
     Value::Object(out).to_string()
+}
+
+/// Imports a validated consignment into an in-memory stock and reads its
+/// state back, as `rgb state` does: global state, and every allocation with
+/// its seal (the seals the consignment reveals; blinded ones stay hidden).
+trait Import {
+    fn import(self, stock: &mut rgbstd::persistence::Stock, resolver: &OfflineResolver) -> Result<(), String>;
+}
+
+impl Import for ValidConsignment<false> {
+    fn import(self, stock: &mut rgbstd::persistence::Stock, resolver: &OfflineResolver) -> Result<(), String> {
+        stock.import_contract(self, resolver).map_err(|e| e.to_string())
+    }
+}
+
+impl Import for ValidConsignment<true> {
+    fn import(self, stock: &mut rgbstd::persistence::Stock, resolver: &OfflineResolver) -> Result<(), String> {
+        stock.accept_transfer(self, resolver).map_err(|e| e.to_string())
+    }
+}
+
+fn contract_state<const T: bool>(valid: ValidConsignment<T>, resolver: &OfflineResolver) -> Result<Value, String>
+where ValidConsignment<T>: Import {
+    use rgbstd::contract::FilterIncludeAll;
+    use rgbstd::persistence::Stock;
+
+    let id = valid.contract_id();
+    // Outpoints spent by the witness transactions the consignment carries.
+    let spent: std::collections::HashSet<String> = resolver
+        .0
+        .values()
+        .flat_map(|tx| tx.input.iter().map(|i| i.previous_output.to_string()))
+        .collect();
+    let mut stock = Stock::in_memory();
+    valid.import(&mut stock, resolver)?;
+    let data = stock.contract_data(id).map_err(|e| e.to_string())?;
+    let global: serde_json::Map<_, _> = data
+        .schema
+        .global_types
+        .values()
+        .map(|g| (g.name.to_string(), json!(data.global(g.name.clone()).map(|v| v.to_string()).collect::<Vec<_>>())))
+        .collect();
+    let mut owned = serde_json::Map::new();
+    for d in data.schema.owned_types.values() {
+        let name = d.name.clone();
+        let mut cells = vec![];
+        let witness = |w: Option<Txid>| w.map(|w| w.to_string());
+        let is_spent = |seal: &dyn std::fmt::Display| spent.contains(&seal.to_string());
+        if let Ok(a) = data.fungible(name.clone(), FilterIncludeAll) {
+            cells.extend(a.map(|a| json!({"seal": a.seal.to_string(), "value": a.state.value().to_string(), "witness": witness(a.witness), "spent": is_spent(&a.seal)})));
+        }
+        if let Ok(a) = data.data(name.clone(), FilterIncludeAll) {
+            cells.extend(a.map(|a| json!({"seal": a.seal.to_string(), "value": a.state.to_string(), "witness": witness(a.witness), "spent": is_spent(&a.seal)})));
+        }
+        if let Ok(a) = data.rights(name.clone(), FilterIncludeAll) {
+            cells.extend(a.map(|a| json!({"seal": a.seal.to_string(), "value": "right", "witness": witness(a.witness), "spent": is_spent(&a.seal)})));
+        }
+        owned.insert(name.to_string(), json!(cells));
+    }
+    Ok(json!({"global": global, "owned": owned}))
 }
 
 /// Validates a v0.11 consignment file (the `RGB\0TFR` transfer or `RGB\0CON`
@@ -233,8 +301,9 @@ pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
                 .collect();
             let (name, trusted_typesystem) = trusted(c.schema_id(), &c.types)?;
             let config = ValidationConfig { chain_net, trusted_typesystem, ..Default::default() };
-            let res = c.validate(&OfflineResolver(txes), &config);
-            Ok(report("transfer", id, schema, name, chain_net, witnesses, json!(terminals), res))
+            let resolver = OfflineResolver(txes);
+            let res = c.validate(&resolver, &config);
+            Ok(report("transfer", id, schema, name, chain_net, witnesses, json!(terminals), &resolver, res))
         }
         b"CON" => {
             let c = Contract::load(bytes).map_err(|e| e.to_string())?;
@@ -242,8 +311,9 @@ pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
             let (id, schema) = (c.contract_id(), c.schema_id().to_string());
             let (name, trusted_typesystem) = trusted(c.schema_id(), &c.types)?;
             let config = ValidationConfig { chain_net, trusted_typesystem, ..Default::default() };
-            let res = c.validate(&OfflineResolver(HashMap::new()), &config);
-            Ok(report("contract", id, schema, name, chain_net, vec![], json!([]), res))
+            let resolver = OfflineResolver(HashMap::new());
+            let res = c.validate(&resolver, &config);
+            Ok(report("contract", id, schema, name, chain_net, vec![], json!([]), &resolver, res))
         }
         other => Err(format!(
             "unsupported v0.11 file type {:?}; expected TFR or CON",

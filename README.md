@@ -25,7 +25,7 @@ rgbjs doesn't reimplement either protocol. It wraps the reference code, so it ac
 | Parse a contract ID | yes | yes |
 | Tell which line a string or file is | yes | yes |
 | Validate a consignment offline | yes (contracts and transfers) | yes (contracts and transfers) |
-| Read contract state from a consignment | not yet | yes |
+| Read contract state from a consignment | yes | yes |
 
 ## Use
 
@@ -49,6 +49,7 @@ result.witnesses   // the witness transactions it relies on
 // v0.11 transfers: result.terminals lists the blinded seals the transfer is for;
 //                  as the recipient, check that yours is there
 // v0.11: result.schema       'NIA', 'CFA', 'UDA', 'IFA' or 'PFA'
+//        result.state        { global: { spec: [...], issuedSupply: [...] }, owned: { assetOwner: [{ seal, value, witness, spent }] } }
 // v0.12: result.issuer       { id, name, developer, trusted, ... }
 //        result.state        { global: { ticker: ['"DEMO"'], ... }, owned: { balance: [{ outpoint, value }] } }
 ```
