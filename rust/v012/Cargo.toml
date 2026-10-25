@@ -30,3 +30,7 @@ lto = true
 codegen-units = 1
 strip = true
 panic = "abort"
+
+[patch.crates-io]
+# Caps decoder pre-allocation; see rust/patches/strict_encoding-2.9.1/RGBJS-PATCH.md.
+strict_encoding = { path = "../patches/strict_encoding-2.9.1" }

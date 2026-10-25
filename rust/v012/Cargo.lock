@@ -963,8 +963,6 @@ dependencies = [
 [[package]]
 name = "strict_encoding"
 version = "2.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b8d9721d221d797767f8d5ad72b3a34dcdb5b9d646fe76248ee0f5e6fa6ca89"
 dependencies = [
  "amplify",
  "getrandom 0.2.17",

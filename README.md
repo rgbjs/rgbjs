@@ -73,6 +73,8 @@ Both lines run the reference validator. **Witness transactions aren't looked up 
 
 ## Known issues
 
+- `wasm/v012` is built with a patched `strict_encoding` 2.9.1 (`rust/patches/`). Upstream pre-allocates from untrusted length prefixes, so one corrupted byte in a consignment can request ~4.4 GB and abort the wasm. The patch caps pre-allocation as rgb-protocol's `rgb-strict-encoding` 1.0.5 already does for v0.11. The tests check that no corrupted consignment traps.
+
 - v0.12 invoices print as `contract:tb@contract:<id>/...` instead of `contract:tb@<id>/...` ([AluVM/sonic#27](https://github.com/AluVM/sonic/issues/27)). The cause is that `CallScope`'s `Display` doesn't pass the `{:-}` flag on to `ContractId`. Both forms parse to the same invoice.
 - The 0.11.2 consignment format (rgb-api 0.11.2-rc.1) can't be read. 0.11.1 is pinned until 0.11.2 is final.
 - Size: `wasm/v011` is 2.9 MB (680 KB gzipped) and `wasm/v012` 1.7 MB (420 KB gzipped). secp256k1 is built with `lowmemory` to keep its precomputed tables small, which makes signature checks a little slower. `rgb-consensus` 0.11.1 still pulls in two secp256k1 versions.

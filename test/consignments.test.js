@@ -55,7 +55,7 @@ test('v0.11 transfer: no single-byte corruption passes as the same valid transfe
     const bad = transfer011.slice()
     bad[i] ^= 0x01
     let r
-    try { r = validateConsignment(bad) } catch { continue }
+    try { r = validateConsignment(bad) } catch (e) { assert.doesNotMatch(e.message, /unreachable|RuntimeError/, `byte ${i}: wasm trap`); continue }
     checked++
     assert.ok(!r.valid || r.contractId !== base.contractId || JSON.stringify([r.witnesses, r.terminals, r.state]) !== same,
       `byte ${i} flipped but still valid as the same transfer`)
@@ -78,7 +78,7 @@ test('no single-byte corruption passes as the same valid contract', () => {
     const bad = contract.slice()
     bad[i] ^= 0x01
     let r
-    try { r = validateConsignment(bad) } catch { continue }
+    try { r = validateConsignment(bad) } catch (e) { assert.doesNotMatch(e.message, /unreachable|RuntimeError/, `byte ${i}: wasm trap`); continue }
     checked++
     assert.ok(!r.valid || r.contractId !== contractId || JSON.stringify(r.state) !== same,
       `byte ${i} flipped but still valid as ${contractId} with the same state`)
@@ -152,7 +152,7 @@ for (const [name, bytes] of [['DemoToken.rgb', token], ['TransferDemo.transfer.r
       const bad = bytes.slice()
       bad[i] ^= 0x01
       let r
-      try { r = validateConsignment(bad) } catch { continue }
+      try { r = validateConsignment(bad) } catch (e) { assert.doesNotMatch(e.message, /unreachable|RuntimeError/, `byte ${i}: wasm trap`); continue }
       checked++
       assert.ok(!r.valid || r.contractId !== base.contractId || !r.issuer.trusted ||
         JSON.stringify([r.state, r.witnesses]) !== same,
@@ -176,4 +176,15 @@ test('v0.12 header checks', () => {
   future[9] = 7
   assert.throws(() => v012.validateConsignment(future), /version 7/)
   assert.throws(() => v012.validateConsignment(token.subarray(0, 200)))
+})
+
+test('v0.12: a forged length prefix is a decode error, not a wasm trap', () => {
+  // Bytes 7072, 7127 and 7168 are the high bytes of witness-transaction
+  // length prefixes. Unpatched strict_encoding 2.9.1 pre-allocates ~4.4 GB for
+  // them and the wasm aborts with "unreachable" (rust/patches/strict_encoding-2.9.1).
+  for (const i of [7072, 7127, 7168]) {
+    const bad = transfer.slice()
+    bad[i] ^= 0x01
+    assert.throws(() => validateConsignment(bad), err => !/unreachable/.test(err.message))
+  }
 })
