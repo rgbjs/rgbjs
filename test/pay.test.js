@@ -116,4 +116,9 @@ test('the mined txbt4 transfers validate and name their mined witnesses', async 
   assert.equal(a.contractId, b.contractId)
   assert.deepEqual(a.witnesses.map(w => w.txid), [OPRET])
   assert.deepEqual(b.witnesses.map(w => w.txid).sort(), [OPRET, TAPRET].sort())
+  // Alice to Bob, two wallets: its history runs back through both earlier payments.
+  const c = validateConsignment(file('mined-to-bob.transfer.rgb'))
+  assert.equal(c.valid, true, c.error)
+  assert.equal(c.contractId, a.contractId)
+  assert.ok(c.witnesses.some(w => w.txid === '3e0bafc938cb94c0d9f33f6a85824ccbfe7bfb6a9283e7f721e29a4386b1ae6d'))
 })
