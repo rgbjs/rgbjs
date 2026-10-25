@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rgbjs conformance</title>
+<meta name="description" content="rgbjs runs the upstream RGB v0.11 and v0.12 test vectors live in your browser.">
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a2e; --muted: #6c757d; --line: #e9ecef;
+    --pass: #2e7d32; --fail: #c62828; --accent: #5a6fd8; --code: #f6f7fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14151f; --fg: #e8e8f0; --muted: #9a9cb0; --line: #2a2c3c;
+      --pass: #66bb6a; --fail: #ef5350; --accent: #8c9cff; --code: #1d1f2d; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.5 Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.8rem; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 32px 0 8px; }
+  p { margin: 8px 0; }
+  a { color: var(--accent); }
+  .muted { color: var(--muted); }
+  .summary { font-size: 1.2rem; font-weight: 600; margin: 20px 0; }
+  .summary.pass { color: var(--pass); } .summary.fail { color: var(--fail); }
+  details { border-top: 1px solid var(--line); padding: 6px 0; }
+  summary { cursor: pointer; list-style: none; display: flex; gap: 10px; align-items: baseline; }
+  summary::-webkit-details-marker { display: none; }
+  .tag { font: 600 12px/1 ui-monospace, monospace; padding: 3px 6px; border-radius: 4px; flex: none; }
+  .tag.pass { color: var(--pass); border: 1px solid var(--pass); }
+  .tag.fail { color: var(--fail); border: 1px solid var(--fail); }
+  .name { overflow-wrap: anywhere; }
+  pre { background: var(--code); padding: 10px; border-radius: 6px; overflow-x: auto;
+    font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<main>
+  <h1>rgbjs conformance</h1>
+  <p class="muted">Early development, version 0.0.1. Not for real funds.</p>
+  <p>This page loads the rgbjs WebAssembly builds of both RGB lines and runs the test vectors in your browser: the upstream invoice tests from <code>rgb-invoicing</code> 0.11.1 and <code>sonic-callreq</code> 0.12.0, invoices printed by the real CLIs, and contract consignments exported by <code>rgb-cmd</code> 0.11.1 and <code>rgb-wallet</code> 0.12.0-rc.3. PASS means rgbjs accepted what the reference code accepts and rejected what it rejects. Nothing is fetched from anywhere except this site.</p>
+  <p><a href="https://github.com/rgbjs/rgbjs">Source</a> · <a href="https://rgb-docs.github.io/getting-started/two-rgbs">The two RGB lines</a></p>
+  <div id="summary" class="summary">Loading the wasm builds…</div>
+  <div id="results"></div>
+</main>
+<script type="module">
+const $ = s => document.querySelector(s)
+const results = $('#results')
+const fold = s => s.replace(/@contract:/, '@')
+let pass = 0, fail = 0
+
+function report (section, name, ok, detail) {
+  ok ? pass++ : fail++
+  let group = results.querySelector(`[data-section="${section}"]`)
+  if (!group) {
+    group = document.createElement('section')
+    group.dataset.section = section
+    group.innerHTML = `<h2></h2>`
+    group.querySelector('h2').textContent = section
+    results.append(group)
+  }
+  const d = document.createElement('details')
+  d.innerHTML = `<summary><span class="tag"></span><span class="name"></span></summary><pre></pre>`
+  d.querySelector('.tag').className = `tag ${ok ? 'pass' : 'fail'}`
+  d.querySelector('.tag').textContent = ok ? 'PASS' : 'FAIL'
+  d.querySelector('.name').textContent = name
+  d.querySelector('pre').textContent = detail
+  group.append(d)
+}
+
+function check (section, name, fn) {
+  try {
+    const detail = fn()
+    report(section, name, true, typeof detail === 'string' ? detail : JSON.stringify(detail, null, 2))
+  } catch (err) {
+    report(section, name, false, String(err && err.stack || err))
+  }
+}
+
+const json = async path => (await fetch(path)).json()
+const bytes = async path => new Uint8Array(await (await fetch(path)).arrayBuffer())
+
+try {
+  const t0 = performance.now()
+  const { detectLine, parseInvoice, validateConsignment, v011, v012 } = await import('./src/index.js')
+  $('#summary').textContent = `Loaded in ${Math.round(performance.now() - t0)} ms. Running…`
+
+  for (const [lib, file] of [[v011, 'test/vectors/v011/upstream-invoices.json'], [v012, 'test/vectors/v012/upstream-invoices.json']]) {
+    for (const v of (await json(file)).vectors) {
+      check(`${lib.line} upstream invoice tests`, `${v.expect === 'ok' ? 'accepts' : 'rejects'} ${v.input}`, () => {
+        if (v.expect === 'ok') {
+          const inv = lib.parseInvoice(v.input)
+          const printed = lib === v012 ? fold(inv.invoice) : inv.invoice
+          if (v.roundtrip && printed !== v.input) throw new Error(`printed back as ${inv.invoice}`)
+          return { source: v.source, parsed: inv }
+        }
+        let err
+        try { lib.parseInvoice(v.input) } catch (e) { err = e }
+        if (!err) throw new Error('accepted, but upstream rejects it')
+        return `source: ${v.source}\nrejected: ${err.message}`
+      })
+    }
+  }
+
+  for (const v of (await json('test/vectors/cli-invoices.json')).vectors) {
+    check('Invoices from the CLIs', v.input, () => {
+      if (detectLine(v.input) !== v.line) throw new Error(`detected as ${detectLine(v.input)}`)
+      const inv = parseInvoice(v.input)
+      for (const [k, want] of Object.entries(v.expect)) {
+        if (JSON.stringify(inv[k]) !== JSON.stringify(want)) throw new Error(`${k}: got ${JSON.stringify(inv[k])}, want ${JSON.stringify(want)}`)
+      }
+      return { source: v.source, parsed: inv }
+    })
+  }
+
+  const consignments = [
+    ['test/vectors/v011/demo.contract.rgb', 'rgb:v4Kpkuwn-yjzKgYa-5G5h0cc-lLVyr2B-hdpCTaR-KOe~agc'],
+    ['test/vectors/v012/DemoToken.rgb', 'contract:nztjpjRX-_NVDDgd-EHENsqL-AKsGsyV-F6LzljB-X4WTv0Y']
+  ]
+  for (const [path, id] of consignments) {
+    const file = await bytes(path)
+    check('Consignments', `${path.split('/').pop()} is valid`, () => {
+      const r = validateConsignment(file)
+      if (!r.valid) throw new Error(r.error)
+      if (r.contractId !== id) throw new Error(`contract ID ${r.contractId}`)
+      if (r.line === 'v0.12' && !r.issuer.trusted) throw new Error('issuer not trusted')
+      return r
+    })
+    check('Consignments', `${path.split('/').pop()}: a sample of single-byte corruptions are all caught`, () => {
+      const base = validateConsignment(file)
+      const same = JSON.stringify(base.state)
+      let tried = 0, caught = 0
+      for (let i = 11; i < file.length; i += 13) {
+        const bad = file.slice()
+        bad[i] ^= 1
+        tried++
+        let r
+        try { r = validateConsignment(bad) } catch { caught++; continue }
+        const passed = r.valid && r.contractId === base.contractId &&
+          (r.line === 'v0.11' || (r.issuer.trusted && JSON.stringify(r.state) === same))
+        if (passed) throw new Error(`byte ${i} flipped but still valid as the same contract`)
+        caught++
+      }
+      return `${caught} of ${tried} corrupted copies rejected or reported as different`
+    })
+  }
+
+  $('#summary').textContent = `${pass} passed, ${fail} failed`
+  $('#summary').className = `summary ${fail ? 'fail' : 'pass'}`
+} catch (err) {
+  $('#summary').textContent = `Couldn't load rgbjs: ${err.message}`
+  $('#summary').className = 'summary fail'
+  console.error(err)
+}
+</script>
+</body>
+</html>

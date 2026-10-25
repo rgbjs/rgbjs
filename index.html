@@ -423,6 +423,9 @@
           </p>
           <div class="cta-buttons fade-in-delay-2">
             <a href="#status" class="btn btn-primary"> Project status </a>
+            <a href="conformance.html" class="btn btn-secondary">
+              Run the tests in your browser
+            </a>
             <a href="https://github.com/rgbjs/rgbjs" class="btn btn-secondary">
               View on GitHub
             </a>
@@ -479,17 +482,20 @@
     <!-- Code Section -->
     <section class="code-section">
       <div class="container">
-        <h2>Planned API</h2>
+        <h2>API</h2>
 
         <div class="code-example">
-          <pre><code>// Planned, not yet published
-import { parseInvoice } from 'rgbjs'
+          <pre><code>// Not on npm yet: use the GitHub repo
+import { parseInvoice, validateConsignment } from 'rgbjs'
 
 const invoice = parseInvoice(text)
 invoice.line        // 'v0.11' or 'v0.12'
-invoice.contract    // contract ID, if the invoice names one
+invoice.contractId  // contract ID, if the invoice names one
 invoice.amount      // requested amount, if any
-invoice.beneficiary // where the asset goes</code></pre>
+invoice.beneficiary // where the asset goes
+
+const result = validateConsignment(bytes)  // a .rgb file
+result.valid        // valid if its witness transactions confirm</code></pre>
         </div>
       </div>
     </section>
@@ -501,18 +507,20 @@ invoice.beneficiary // where the asset goes</code></pre>
 
         <div class="use-cases-grid">
           <div class="use-case">
-            <h3>Now</h3>
+            <h3>Works now</h3>
             <p>
-              Checking that each line's invoice and validation crates build to
-              WebAssembly and decode real invoices.
+              Both lines: parse invoices and contract IDs, tell the lines
+              apart, and validate contract consignments offline. The
+              <a href="conformance.html">conformance page</a> runs the
+              upstream test vectors in your browser.
             </p>
           </div>
 
           <div class="use-case">
             <h3>Next</h3>
             <p>
-              A first read-only release: invoices, contract IDs, line
-              detection, offline consignment checks.
+              Transfer consignment vectors for both lines, then a first npm
+              release. Version 0.0.1 until then.
             </p>
           </div>
 
