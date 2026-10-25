@@ -2,24 +2,22 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <script type="module" src="/@vite/client"></script>
-
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>rgbjs - JavaScript RGB Protocol Library</title>
+    <title>rgbjs: JavaScript for both RGB lines</title>
     <meta
       name="description"
-      content="The first production-ready JavaScript implementation of the RGB protocol. Run RGB contracts in browsers, PWAs, and mobile apps."
+      content="JavaScript for both RGB lines (v0.11 and v0.12), built from each line's own Rust crates compiled to WebAssembly. Early development."
     />
 
     <!-- Open Graph -->
     <meta
       property="og:title"
-      content="rgbjs - JavaScript RGB Protocol Library"
+      content="rgbjs: JavaScript for both RGB lines"
     />
     <meta
       property="og:description"
-      content="Production-ready JavaScript implementation of the RGB protocol for browsers, PWAs, and mobile apps."
+      content="JavaScript for both RGB lines (v0.11 and v0.12), built from each line's own Rust crates compiled to WebAssembly. Early development."
     />
     <meta property="og:type" content="website" />
 
@@ -421,13 +419,12 @@
         <div class="header-content">
           <div class="logo fade-in">rgbjs</div>
           <p class="tagline fade-in-delay-1">
-            The first production-ready JavaScript implementation of the RGB
-            protocol
+            JavaScript for both RGB lines, v0.11 and v0.12. Early development.
           </p>
           <div class="cta-buttons fade-in-delay-2">
-            <a href="#get-started" class="btn btn-primary"> 🚀 Get Started </a>
+            <a href="#status" class="btn btn-primary"> Project status </a>
             <a href="https://github.com/rgbjs/rgbjs" class="btn btn-secondary">
-              📖 View on GitHub
+              View on GitHub
             </a>
           </div>
         </div>
@@ -437,38 +434,42 @@
     <!-- Hero Section -->
     <section class="hero">
       <div class="container">
-        <h2>Run RGB Contracts Anywhere JavaScript Runs</h2>
+        <h2>The RGB code, compiled for JavaScript</h2>
         <p>
-          rgbjs brings the power of RGB protocol to browsers, Progressive Web
-          Apps, and mobile applications. Create, manage, and interact with RGB20
-          assets using pure JavaScript.
+          RGB is now two incompatible protocols: v0.11, maintained by the RGB
+          Protocol Association, and v0.12, maintained by RGB-WG. rgbjs doesn't
+          reimplement either. It compiles each line's own Rust crates to
+          WebAssembly and puts one small TypeScript API on top, so browsers,
+          PWAs and Node get the same rules the reference code checks.
         </p>
 
         <div class="features-grid">
           <div class="feature-card fade-in">
-            <div class="feature-icon">🌐</div>
-            <h3>Browser Native</h3>
+            <div class="feature-icon">🔀</div>
+            <h3>Both lines</h3>
             <p>
-              No compilation needed. Run directly in modern browsers with full
-              RGB protocol support.
+              <code>@rgbjs/v011</code> and <code>@rgbjs/v012</code> wrap each
+              line's crates. <code>rgbjs</code> tells you which line an invoice
+              belongs to and sends it to the right one.
             </p>
           </div>
 
           <div class="feature-card fade-in-delay-1">
-            <div class="feature-icon">📱</div>
-            <h3>Mobile Ready</h3>
+            <div class="feature-icon">🔒</div>
+            <h3>Read-only first</h3>
             <p>
-              Perfect for mobile apps and PWAs. Lightweight and optimized for
-              mobile performance.
+              The first release holds no keys and opens no network
+              connections: it parses and writes invoices, formats contract IDs
+              and checks consignments offline.
             </p>
           </div>
 
           <div class="feature-card fade-in-delay-2">
-            <div class="feature-icon">⚡</div>
-            <h3>Production Ready</h3>
+            <div class="feature-icon">🧪</div>
+            <h3>Not for real funds</h3>
             <p>
-              134+ tests passing, 100% RGB test vector compatibility. Built for
-              real-world use.
+              Nothing is released yet. Don't use rgbjs with real assets until a
+              release says it's ready.
             </p>
           </div>
         </div>
@@ -478,116 +479,58 @@
     <!-- Code Section -->
     <section class="code-section">
       <div class="container">
-        <h2>Simple, Powerful API</h2>
+        <h2>Planned API</h2>
 
         <div class="code-example">
-          <pre><code>// Create an RGB20 asset in just a few lines
-const contract = RGB20Contract.create({
-  ticker: 'SBTC',
-  name: 'Synthetic Bitcoin',
-  precision: 8,
-  terms: 'Bitcoin-backed synthetic asset',
-  supply: 2100000000000000,
-  utxoRef: 'txid:vout'
-});
+          <pre><code>// Planned, not yet published
+import { parseInvoice } from 'rgbjs'
 
-// Get contract information
-console.log(contract.getFormattedContractId());
-// rgb:012e3b1c-674138bd-248df4f6-5128d24c-97102742-415cf1f9-c2bc9961-3cc46c05
-
-// Validate transfers
-const validation = contract.validateTransfer('source:0', 1000, 'dest:1');
-console.log(validation.valid); // true</code></pre>
+const invoice = parseInvoice(text)
+invoice.line        // 'v0.11' or 'v0.12'
+invoice.contract    // contract ID, if the invoice names one
+invoice.amount      // requested amount, if any
+invoice.beneficiary // where the asset goes</code></pre>
         </div>
       </div>
     </section>
 
-    <!-- Stats Section -->
-    <section class="stats">
+    <!-- Status -->
+    <section class="use-cases" id="status">
       <div class="container">
-        <div class="stats-grid">
-          <div class="stat-item">
-            <h3>134+</h3>
-            <p>Tests Passing</p>
-          </div>
-          <div class="stat-item">
-            <h3>100%</h3>
-            <p>RGB Test Vector Compatible</p>
-          </div>
-          <div class="stat-item">
-            <h3>5</h3>
-            <p>Architecture Stages</p>
-          </div>
-          <div class="stat-item">
-            <h3>13ms</h3>
-            <p>Contract Creation Time</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Use Cases -->
-    <section class="use-cases">
-      <div class="container">
-        <h2>Built for Real-World Applications</h2>
+        <h2>Status</h2>
 
         <div class="use-cases-grid">
           <div class="use-case">
-            <h3>🎯 DeFi Applications</h3>
+            <h3>Now</h3>
             <p>
-              Create synthetic assets, stablecoins, and tokenized instruments
-              that run entirely in the browser. No backend required for basic
-              operations.
+              Checking that each line's invoice and validation crates build to
+              WebAssembly and decode real invoices.
             </p>
           </div>
 
           <div class="use-case">
-            <h3>📱 Mobile Wallets</h3>
+            <h3>Next</h3>
             <p>
-              Lightweight RGB protocol implementation perfect for mobile
-              wallets. Small bundle size with full RGB20 functionality.
+              A first read-only release: invoices, contract IDs, line
+              detection, offline consignment checks.
             </p>
           </div>
 
           <div class="use-case">
-            <h3>🌐 Web3 DApps</h3>
+            <h3>Later</h3>
             <p>
-              Integrate RGB protocol directly into web applications. Create
-              asset management interfaces and trading platforms.
+              Wallet features such as paying and accepting transfers, once the
+              read-only layer is solid.
             </p>
           </div>
 
           <div class="use-case">
-            <h3>🔧 Developer Tools</h3>
+            <h3>Docs</h3>
             <p>
-              Build RGB protocol tools, explorers, and utilities. Full API for
-              contract creation, validation, and management.
+              Both RGB lines are documented at
+              <a href="https://rgb-docs.github.io">rgb-docs.github.io</a>.
             </p>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Get Started Section -->
-    <section
-      id="get-started"
-      class="hero"
-      style="background: var(--darker); color: white"
-    >
-      <div class="container">
-        <h2>Ready to Get Started?</h2>
-        <p>
-          Join the future of RGB protocol development with the most accessible
-          implementation available.
-        </p>
-
-        <div class="cta-buttons">
-          <a href="https://github.com/rgbjs/rgbjs" class="btn btn-primary">
-            📚 View Documentation
-          </a>
-          <a href="https://github.com/rgbjs/rgbjs" class="btn btn-secondary">
-            ⭐ Star on GitHub
-          </a>
         </div>
       </div>
     </section>
@@ -598,47 +541,26 @@ console.log(validation.valid); // true</code></pre>
         <div class="footer-content">
           <div class="footer-section">
             <h3>rgbjs</h3>
-            <p>
-              The first production-ready JavaScript implementation of the RGB
-              protocol.
-            </p>
+            <p>JavaScript for both RGB lines. Early development.</p>
           </div>
 
           <div class="footer-section">
-            <h3>Resources</h3>
-            <a href="https://github.com/rgbjs/rgbjs">GitHub Repository</a>
-            <a href="https://github.com/rgbjs/rgbjs/blob/main/README.md"
-              >Documentation</a
-            >
-            <a href="https://github.com/rgbjs/rgbjs/issues">Issue Tracker</a>
+            <h3>Project</h3>
+            <a href="https://github.com/rgbjs/rgbjs">GitHub repository</a>
+            <a href="https://github.com/rgbjs/rgbjs/issues">Issue tracker</a>
           </div>
 
           <div class="footer-section">
-            <h3>Community</h3>
-            <a href="https://github.com/rgbjs/rgbjs/discussions">Discussions</a>
-            <a href="https://github.com/rgbjs/rgbjs/blob/main/CONTRIBUTING.md"
-              >Contributing</a
-            >
-            <a
-              href="https://github.com/rgbjs/rgbjs/blob/main/CODE_OF_CONDUCT.md"
-              >Code of Conduct</a
-            >
-          </div>
-
-          <div class="footer-section">
-            <h3>Learn More</h3>
-            <a href="https://rgb.org">RGB Protocol</a>
-            <a href="https://github.com/rgbjs/rgbjs/blob/main/CLAUDE.md"
-              >Implementation Details</a
-            >
-            <a href="https://github.com/rgbjs/rgbjs/blob/main/examples/"
-              >Examples</a
+            <h3>Learn more</h3>
+            <a href="https://rgb-docs.github.io">RGB Docs</a>
+            <a href="https://rgb-docs.github.io/getting-started/two-rgbs"
+              >The two RGB lines</a
             >
           </div>
         </div>
 
         <div class="footer-bottom">
-          <p>&copy; 2024 rgbjs. Open source software licensed under MIT.</p>
+          <p>&copy; 2026 rgbjs. MIT licensed.</p>
         </div>
       </div>
     </footer>
