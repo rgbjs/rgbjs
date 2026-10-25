@@ -164,6 +164,7 @@ fn report<const T: bool>(
     witnesses: Vec<(Txid, bool)>,
     terminals: Value,
     resolver: &OfflineResolver,
+    reveal: Option<rgbstd::GraphSeal>,
     res: Result<ValidConsignment<T>, ValidationError>,
 ) -> String
 where
@@ -190,7 +191,7 @@ where
             out.insert("valid".into(), json!(true));
             out.insert("warnings".into(), json!(status.warnings.iter().map(|w| w.to_string()).collect::<Vec<_>>()));
             out.insert("info".into(), json!(status.info.iter().map(|i| i.to_string()).collect::<Vec<_>>()));
-            match contract_state(valid, resolver) {
+            match contract_state(valid, resolver, reveal) {
                 Ok(state) => out.insert("state".into(), state),
                 Err(e) => out.insert("stateError".into(), json!(e)),
             };
@@ -226,7 +227,11 @@ impl Import for ValidConsignment<true> {
     }
 }
 
-fn contract_state<const T: bool>(valid: ValidConsignment<T>, resolver: &OfflineResolver) -> Result<Value, String>
+fn contract_state<const T: bool>(
+    valid: ValidConsignment<T>,
+    resolver: &OfflineResolver,
+    reveal: Option<rgbstd::GraphSeal>,
+) -> Result<Value, String>
 where ValidConsignment<T>: Import {
     use rgbstd::contract::FilterIncludeAll;
     use rgbstd::persistence::Stock;
@@ -239,6 +244,11 @@ where ValidConsignment<T>: Import {
         .flat_map(|tx| tx.input.iter().map(|i| i.previous_output.to_string()))
         .collect();
     let mut stock = Stock::in_memory();
+    // A recipient's own blinded seal: once stored, the allocation it receives
+    // shows with its outpoint instead of staying concealed.
+    if let Some(seal) = reveal {
+        stock.store_secret_seal(seal).map_err(|e| e.to_string())?;
+    }
     valid.import(&mut stock, resolver)?;
     let data = stock.contract_data(id).map_err(|e| e.to_string())?;
     let global: serde_json::Map<_, _> = data
@@ -279,7 +289,10 @@ where ValidConsignment<T>: Import {
 /// consignment; whether they are mined is NOT checked, so `valid: true` means
 /// "valid if the listed witnesses confirm".
 #[wasm_bindgen(js_name = validateConsignment)]
-pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
+pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> { validate_with(bytes, None) }
+
+/// Validation, optionally revealing one of the recipient's blinded seals.
+pub(crate) fn validate_with(bytes: &[u8], reveal: Option<rgbstd::GraphSeal>) -> Result<String, String> {
     if bytes.len() < 7 || &bytes[..4] != b"RGB\0" {
         return Err("not an RGB v0.11 consignment file (missing RGB\\0 header)".into());
     }
@@ -312,7 +325,7 @@ pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
             let config = ValidationConfig { chain_net, trusted_typesystem, ..Default::default() };
             let resolver = OfflineResolver(txes);
             let res = c.validate(&resolver, &config);
-            Ok(report("transfer", id, schema, name, chain_net, witnesses, json!(terminals), &resolver, res))
+            Ok(report("transfer", id, schema, name, chain_net, witnesses, json!(terminals), &resolver, reveal, res))
         }
         b"CON" => {
             let c = Contract::load(bytes).map_err(|e| e.to_string())?;
@@ -322,7 +335,7 @@ pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
             let config = ValidationConfig { chain_net, trusted_typesystem, ..Default::default() };
             let resolver = OfflineResolver(HashMap::new());
             let res = c.validate(&resolver, &config);
-            Ok(report("contract", id, schema, name, chain_net, vec![], json!([]), &resolver, res))
+            Ok(report("contract", id, schema, name, chain_net, vec![], json!([]), &resolver, reveal, res))
         }
         other => Err(format!(
             "unsupported v0.11 file type {:?}; expected TFR or CON",

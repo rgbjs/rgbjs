@@ -40,3 +40,10 @@ export function issueContract (params) {
  * { invoice, secretSeal, seal }: keep `seal` to claim what arrives.
  */
 export const createInvoice = params => call(wasm.createInvoice, JSON.stringify(params))
+
+/**
+ * Did this transfer pay me? Give the transfer file and the `seal` from your
+ * invoice ({ outpoint, blinding }). Returns the validation result plus
+ * `receive: { secretSeal, addressedToYou, received: [{ name, value, outpoint, witness }] }`.
+ */
+export const receive = (bytes, { outpoint, blinding }) => call(wasm.receive, bytes, outpoint, String(blinding))

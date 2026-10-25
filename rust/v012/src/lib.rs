@@ -159,6 +159,14 @@ pub fn known_issuers() -> String {
 /// are not checked; `signed` says whether one is present.
 #[wasm_bindgen(js_name = validateConsignment)]
 pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
+    evaluate(bytes).map(|(out, _)| out.to_string())
+}
+
+pub(crate) type MemContract = rgb::Contract<mem::StockMem, mem::PileMem>;
+
+/// Validates a consignment and returns the result JSON and, if it is valid,
+/// the evaluated in-memory contract.
+pub(crate) fn evaluate(bytes: &[u8]) -> Result<(serde_json::Value, Option<MemContract>), String> {
     use bp::seals::TxoSeal;
     use rgb::{parse_consignment, Consignment, Contract};
     use strict_encoding::{StreamReader, StrictDecode, StrictReader};
@@ -213,8 +221,9 @@ pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
     if let Some(error) = mismatch {
         obj.insert("valid".into(), json!(false));
         obj.insert("error".into(), json!(error));
-        return Ok(out.to_string());
+        return Ok((out, None));
     }
+    let mut evaluated = None;
     match Contract::<mem::StockMem, mem::PileMem>::with(articles, consignment, ()) {
         Ok(contract) => {
             let witnesses: Vec<_> = contract
@@ -262,13 +271,14 @@ pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
             obj.insert("operations".into(), json!(contract.operations().count()));
             obj.insert("state".into(), json!({"global": global, "unverified": unverified, "owned": owned, "aggregated": aggregated}));
             obj.insert("witnesses".into(), json!(witnesses));
+            evaluated = Some(contract);
         }
         Err(err) => {
             obj.insert("valid".into(), json!(false));
             obj.insert("error".into(), json!(err.to_string()));
         }
     }
-    Ok(out.to_string())
+    Ok((out, evaluated))
 }
 
 #[cfg(test)]

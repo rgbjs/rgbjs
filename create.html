@@ -269,8 +269,8 @@ $('#n-go').addEventListener('click', async () => {
       valueBox(created.invoice),
       el('div', 'row', button('Copy invoice', () => copy(created.invoice))),
       card('secret', 'Save this secret', line === 'v0.11'
-        ? 'Your wallet needs the outpoint and blinding to recognise and spend what arrives. It is shown once and kept nowhere else.'
-        : 'Your wallet needs the outpoint, noise seed and nonce to recognise and spend what arrives. It is shown once and kept nowhere else.'),
+        ? 'Your wallet needs the outpoint and blinding to recognise and spend what arrives. It is shown once and kept nowhere else. When a transfer comes, drop it and this secret on Check to see what it paid you.'
+        : 'Your wallet needs the outpoint, noise seed and nonce to recognise and spend what arrives. It is shown once and kept nowhere else. When a transfer comes, drop it and this secret on Check to see what it paid you.'),
       valueBox(JSON.stringify(secrets, null, 2)),
       el('div', 'row', button('Download secret backup', () => download('invoice.secret.json', JSON.stringify(secrets, null, 2), 'application/json')))
     )

@@ -49,3 +49,10 @@ export function issueContract (params, noiseSeed, issuerFile) {
  */
 export const createInvoice = ({ contractId, value, outpoint, noiseSeed, nonce = 0 }) =>
   call(wasm.createInvoice, contractId, String(value), outpoint, noiseSeed, BigInt(nonce))
+
+/**
+ * Did this consignment pay me? Give the file and your invoice secret
+ * ({ outpoint, noiseSeed, nonce }). Returns the validation result plus
+ * `receive: { authToken, addressedToYou, received: [{ name, value, outpoint, witness }] }`.
+ */
+export const receive = (bytes, { outpoint, noiseSeed, nonce = 0 }) => call(wasm.receive, bytes, outpoint, noiseSeed, BigInt(nonce))

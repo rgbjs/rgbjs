@@ -28,6 +28,7 @@ rgbjs doesn't reimplement either protocol. It wraps the reference code, so it ac
 | Read contract state from a consignment | yes | yes |
 | Issue a contract (test networks) | yes: NIA, CFA, UDA, IFA, PFA | yes: RGB20 FNA, RGB25 UFA, or any issuer file |
 | Create an invoice (test networks) | yes | yes |
+| Check what a transfer pays you, from your invoice secret | yes | yes |
 
 ## Use
 
@@ -72,6 +73,14 @@ const { invoice, seal } = v011.createInvoice({ network: 'regtest', outpoint: 'tx
 // v0.12: rgb-wallet's issue parameters as JSON, plus a secret noise seed (keep it).
 const bytes = v012.issueContract(params, crypto.getRandomValues(new Uint8Array(32)))
 const inv = v012.createInvoice({ contractId: 'contract:…', value: 100, outpoint: 'txid:vout', noiseSeed, nonce: 0 })
+```
+
+Did a transfer pay me? Give it the transfer and the secret from your invoice:
+
+```js
+const r = v011.receive(transferBytes, { outpoint, blinding })           // v0.12: { outpoint, noiseSeed, nonce }
+r.receive.addressedToYou   // true if the transfer is for your seal
+r.receive.received         // [{ name: 'assetOwner', value: '100', outpoint, witness }]
 ```
 
 [create.html](https://rgbjs.com/create.html) does this in the browser, and [check.html](https://rgbjs.com/check.html) checks any invoice or file.

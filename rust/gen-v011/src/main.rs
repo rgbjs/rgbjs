@@ -29,7 +29,7 @@ use rgb::pay::TransferParams;
 use rgb::{RgbDescr, RgbWallet, WpkhDescr};
 use rgbstd::containers::{ConsignmentExt, FileContent};
 use rgbstd::contract::IssuerWrapper;
-use rgbstd::invoice::{Beneficiary, Precision, RgbInvoiceBuilder, XChainNet};
+use rgbstd::invoice::{Beneficiary, Precision, RgbInvoice, RgbInvoiceBuilder, XChainNet};
 use rgbstd::persistence::Stock;
 use rgbstd::stl::{
     AssetSpec, ContractTerms, EmbeddedMedia, MediaType, Name, RejectListUrl, RicardianContract, TokenData,
@@ -274,20 +274,26 @@ fn build(schema: &str, k: u8, out: &std::path::Path) {
     stock.import_contract(contract, NoResolver).unwrap();
     println!("{schema}: funding {funding_txid}, contract {contract_id}");
 
-    // Bob's blinded seal on an outpoint of his own; only its hash goes in the invoice.
-    let bob = GraphSeal::new_random(rgbstd::Txid::from_str(&"33".repeat(32)).unwrap(), k as u32);
-    let builder = RgbInvoiceBuilder::new(XChainNet::bitcoin(
-        rgbstd::bitcoin::Network::Regtest,
-        Beneficiary::BlindedSeal(bob.to_secret_seal()),
-    ))
-    .set_contract(contract_id)
-    .set_assignment_name(strict_types::FieldName::from("assetOwner"));
-    let invoice = if schema == "uda" {
-        builder.set_allocation_raw(Allocation::with(token, 1))
+    // Bob's invoice: one made elsewhere (BOB_INVOICE, e.g. by rgbjs's
+    // createInvoice, with the contract ID left as CONTRACT_ID), or a blinded
+    // seal made here, of which only the hash goes in the invoice.
+    let invoice = if let Ok(s) = std::env::var("BOB_INVOICE") {
+        RgbInvoice::from_str(&s.replace("CONTRACT_ID", &contract_id.to_string())).expect("BOB_INVOICE")
     } else {
-        builder.set_amount_raw(100u64)
-    }
-    .finish();
+        let bob = GraphSeal::new_random(rgbstd::Txid::from_str(&"33".repeat(32)).unwrap(), k as u32);
+        let builder = RgbInvoiceBuilder::new(XChainNet::bitcoin(
+            rgbstd::bitcoin::Network::Regtest,
+            Beneficiary::BlindedSeal(bob.to_secret_seal()),
+        ))
+        .set_contract(contract_id)
+        .set_assignment_name(strict_types::FieldName::from("assetOwner"));
+        if schema == "uda" {
+            builder.set_allocation_raw(Allocation::with(token, 1))
+        } else {
+            builder.set_amount_raw(100u64)
+        }
+        .finish()
+    };
     println!("{schema}: invoice {invoice}");
 
     let mut wallet = RgbWallet::new(stock, wallet);

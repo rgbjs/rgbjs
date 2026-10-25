@@ -52,6 +52,10 @@
   .examples { font-size: 0.9rem; color: var(--muted); }
   .examples button { padding: 6px 10px; font-size: 13px; }
   #result { margin-top: 24px; }
+  details.paid { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+  details.paid summary { cursor: pointer; font-weight: 600; }
+  details.paid textarea { min-height: 70px; margin-top: 8px; }
+  details.paid input[type=file] { margin-top: 8px; font-size: 0.9rem; }
   .verdict { border: 1px solid var(--line); border-left-width: 6px; border-radius: 8px; padding: 14px 16px; }
   .verdict.ok { border-left-color: var(--ok); } .verdict.bad { border-left-color: var(--bad); } .verdict.warn { border-left-color: var(--warn); }
   .verdict .title { font-size: 1.2rem; font-weight: 700; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
@@ -80,6 +84,12 @@
     <input type="file" id="file" aria-label="Consignment or issuer file">
     Drop a <span class="mono">.rgb</span> or <span class="mono">.issuer</span> file here, or click to choose one
   </label>
+  <details class="paid" id="paid">
+    <summary>Did I get paid? Add the invoice secret you saved</summary>
+    <p class="lede">Paste the secret backup from <a href="create.html">Create</a> (or drop the <span class="mono">.secret.json</span> file), then drop the transfer above. rgbjs rebuilds your seal from it and shows what the transfer pays you. The secret stays in this page.</p>
+    <textarea id="secret" spellcheck="false" placeholder='{ "line": "v0.11", "outpoint": "txid:vout", "blinding": "…" }' aria-label="Invoice secret"></textarea>
+    <input type="file" id="secret-file" accept=".json,application/json" aria-label="Invoice secret file">
+  </details>
   <div class="row">
     <button class="primary" id="check">Check</button>
     <span class="examples">Examples:
@@ -88,6 +98,8 @@
       <button data-file="test/vectors/v011/transfer-demo.transfer.rgb">v0.11 transfer</button>
       <button data-file="test/vectors/v012/TransferDemo.transfer.rgb">v0.12 transfer</button>
       <button data-file="test/vectors/v012/NftDemo.contract.rgb">v0.12 NFT</button>
+      <button data-file="test/vectors/v011/receive-nia.transfer.rgb" data-secret="test/vectors/v011/receive-nia.secret.json">v0.11 payment, with secret</button>
+      <button data-file="test/vectors/v012/receive-fna.transfer.rgb" data-secret="test/vectors/v012/receive-fna.secret.json">v0.12 payment, with secret</button>
     </span>
   </div>
 
@@ -169,6 +181,30 @@ function checkText (s) {
   }
 }
 
+function readSecret () {
+  const raw = $('#secret').value.trim()
+  if (!raw) return null
+  let s
+  try { s = JSON.parse(raw) } catch { throw new Error('The invoice secret isn\'t valid JSON. Paste the whole backup from Create.') }
+  if (!s.outpoint || (s.blinding == null && !s.noiseSeed)) throw new Error('The invoice secret needs an outpoint and either a blinding (v0.11) or a noiseSeed (v0.12).')
+  return s
+}
+const hexBytes = h => Uint8Array.from((h.match(/../g) || []), b => parseInt(b, 16))
+
+function paidVerdict (r, line) {
+  const rec = r.receive
+  if (!r.valid) return null
+  if (!rec.addressedToYou) {
+    return verdict('bad', 'Not paid to you', line === 'v0.11'
+      ? 'This transfer isn\'t addressed to the seal in your secret. Check that you dropped the right transfer and pasted the secret for this invoice.'
+      : 'Nothing in this consignment is locked to the auth token in your secret. Check the transfer and the secret.', line)
+  }
+  const what = rec.received.map(x => `${x.value} ${x.name}`).join(', ')
+  if (r.issuer && !r.issuer.trusted) return verdict('warn', `Paid to you, from an unknown issuer: ${what}`, 'The amounts are valid, but rgbjs doesn\'t know this issuer, so what they mean (names, decimals) is unverified.', line)
+  const w = [...new Set(rec.received.map(x => x.witness).filter(Boolean))]
+  return verdict('ok', `Paid to you: ${what}`, `On ${rec.received[0].outpoint}.${w.length ? ` Wait until witness ${w.join(', ')} is confirmed on chain before you treat it as yours.` : ''}`, line)
+}
+
 function checkBytes (bytes, name) {
   const head = String.fromCharCode(...bytes.subarray(0, 8))
   if (head === 'ISSUER  ') {
@@ -181,8 +217,19 @@ function checkBytes (bytes, name) {
   }
   const line = engine.detectLine(bytes)
   if (!line) return show(verdict('bad', 'Not an RGB file', `${name} doesn't start with an RGB v0.11 (RGB\\0) or v0.12 (RGBCNSGN) header.`))
-  let r
-  try { r = engine.validateConsignment(bytes) } catch (e) {
+  let r, paid = null
+  try {
+    const s = readSecret()
+    if (s && (s.line ? s.line === line : true)) {
+      r = line === 'v0.11'
+        ? engine.v011.receive(bytes, { outpoint: s.outpoint, blinding: String(s.blinding) })
+        : engine.v012.receive(bytes, { outpoint: s.outpoint, noiseSeed: hexBytes(s.noiseSeed), nonce: s.nonce ?? 0 })
+      paid = paidVerdict(r, line)
+    } else {
+      if (s && s.line && s.line !== line) paid = verdict('bad', 'Wrong secret for this file', `The secret is for ${s.line}, but this is a ${line} file.`, line)
+      r = engine.validateConsignment(bytes)
+    }
+  } catch (e) {
     return show(verdict('bad', 'Can\'t read this consignment', e.message, line))
   }
   if (!r.valid) return show(verdict('bad', 'Invalid consignment', r.error, line), table([['Contract', r.contractId]]), raw(r))
@@ -203,7 +250,7 @@ function checkBytes (bytes, name) {
     ['Operations after genesis', r.operations],
     ['Witness transactions', (r.witnesses ?? []).map(w => w.txid).join(', ') || 'none (genesis only)']
   ]
-  const nodes = [verdict(kind, `Valid ${what}${untrusted ? ', unknown issuer' : ''}`, why, line), table(rows)]
+  const nodes = [paid, verdict(kind, `Valid ${what}${untrusted ? ', unknown issuer' : ''}`, why, line), table(rows)]
   if (r.terminals?.length) {
     nodes.push(el('h2', {}, 'Addressed to'), el('p', { class: 'lede' }, 'The blinded seals this transfer is for. If you are the recipient, check that yours is here.'),
       table(r.terminals.flatMap(t => t.seals.map(s => ['Seal', s]))))
@@ -231,6 +278,10 @@ $('#file').addEventListener('change', async e => {
   await ready
   if (engine) checkBytes(new Uint8Array(await f.arrayBuffer()), f.name)
 })
+$('#secret-file').addEventListener('change', async e => {
+  const f = e.target.files[0]
+  if (f) { $('#secret').value = await f.text(); $('#paid').open = true }
+})
 const drop = $('#drop')
 drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over') })
 drop.addEventListener('dragleave', () => drop.classList.remove('over'))
@@ -239,6 +290,7 @@ drop.addEventListener('drop', async e => {
   drop.classList.remove('over')
   const f = e.dataTransfer.files[0]
   if (!f) return
+  if (/\.json$/i.test(f.name)) { $('#secret').value = await f.text(); $('#paid').open = true; return }
   await ready
   if (engine) checkBytes(new Uint8Array(await f.arrayBuffer()), f.name)
 })
@@ -248,6 +300,7 @@ for (const b of document.querySelectorAll('.examples button')) {
     if (!engine) return
     if (b.dataset.text) { $('#text').value = b.dataset.text; return checkText(b.dataset.text) }
     $('#text').value = ''
+    if (b.dataset.secret) { $('#secret').value = await (await fetch(b.dataset.secret)).text(); $('#paid').open = true } else { $('#secret').value = '' }
     const bytes = new Uint8Array(await (await fetch(b.dataset.file)).arrayBuffer())
     checkBytes(bytes, b.dataset.file.split('/').pop())
   })

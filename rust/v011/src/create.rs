@@ -265,3 +265,34 @@ pub fn create_invoice(params: &str) -> Res<String> {
     .to_string())
 }
 
+
+/// Checks whether a transfer pays you: rebuilds the blinded seal of your
+/// invoice from `outpoint` and the secret `blinding`, checks that the transfer
+/// is addressed to it, and lists what arrives on your outpoint. Returns the
+/// validation result with `receive: { secretSeal, addressedToYou, received }`.
+#[wasm_bindgen(js_name = receive)]
+pub fn receive(bytes: &[u8], outpoint: &str, blinding: &str) -> Res<String> {
+    let p = json!({ "outpoint": outpoint, "blinding": blinding });
+    let (txid, vout) = self::outpoint(&p, "outpoint")?;
+    let blinding = u64_field(&p, "blinding")?;
+    let seal = GraphSeal::with_blinding(txid, vout, blinding);
+    let secret = seal.to_secret_seal().to_string();
+    let mut out: Value = serde_json::from_str(&crate::validate_with(bytes, Some(seal))?).map_err(|e| e.to_string())?;
+    let named = out["terminals"]
+        .as_array()
+        .map(|ts| ts.iter().any(|t| t["seals"].as_array().is_some_and(|s| s.iter().any(|x| x.as_str() == Some(secret.as_str())))))
+        .unwrap_or(false);
+    let here = format!("{txid}:{vout}");
+    let mut received = vec![];
+    if let Some(owned) = out["state"]["owned"].as_object() {
+        for (name, cells) in owned {
+            for c in cells.as_array().into_iter().flatten() {
+                if c["seal"].as_str() == Some(here.as_str()) && !c["witness"].is_null() && c["spent"] == json!(false) {
+                    received.push(json!({ "name": name, "value": c["value"], "outpoint": here, "witness": c["witness"] }));
+                }
+            }
+        }
+    }
+    out["receive"] = json!({ "secretSeal": secret, "addressedToYou": named, "received": received });
+    Ok(out.to_string())
+}

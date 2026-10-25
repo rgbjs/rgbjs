@@ -98,3 +98,40 @@ pub fn create_invoice(contract_id: &str, value: &str, outpoint: &str, noise_seed
     })
     .to_string())
 }
+
+/// Checks whether a consignment pays you: rebuilds the auth token of your
+/// invoice from `outpoint`, the secret `noise_seed` and `nonce`, validates the
+/// consignment, and lists the state now locked to that token. Returns the
+/// validation result with `receive: { authToken, addressedToYou, received }`.
+#[wasm_bindgen(js_name = receive)]
+pub fn receive(bytes: &[u8], outpoint: &str, noise_seed: &[u8], nonce: u64) -> Res<String> {
+    let outpoint = Outpoint::from_str(outpoint).map_err(|e| format!("outpoint: {e}"))?;
+    let auth = WTxoSeal::no_fallback(outpoint, noise_engine(noise_seed)?, nonce).auth_token();
+    let (mut out, contract) = crate::evaluate(bytes)?;
+    let mut received = vec![];
+    if let Some(contract) = &contract {
+        let state = contract.full_state();
+        if let Some(addr) = state.raw.auth.get(&auth) {
+            let witness = contract
+                .witnesses()
+                .find(|w| w.opids.contains(&addr.opid))
+                .map(|w| w.id.to_string());
+            for (name, cells) in &state.main.owned {
+                if let Some(value) = cells.get(addr) {
+                    received.push(json!({
+                        "name": name.to_string(),
+                        "value": value.to_string(),
+                        "outpoint": outpoint.to_string(),
+                        "witness": witness,
+                    }));
+                }
+            }
+        }
+    }
+    out["receive"] = json!({
+        "authToken": auth.to_string(),
+        "addressedToYou": !received.is_empty(),
+        "received": received,
+    });
+    Ok(out.to_string())
+}
