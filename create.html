@@ -57,6 +57,7 @@
   .card .why { color: var(--muted); margin-top: 4px; overflow-wrap: anywhere; }
   .value { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: 8px 10px; border-radius: 6px; overflow-wrap: anywhere; margin: 6px 0; }
   .hidden { display: none; }
+  .summary { font-size: 1.05rem; font-weight: 600; margin: 14px 0 0; overflow-wrap: anywhere; }
   footer { border-top: 1px solid var(--line); margin-top: 48px; padding-top: 14px; font-size: 0.9rem; color: var(--muted); }
 </style>
 </head>
@@ -229,8 +230,11 @@ $('#i-go').addEventListener('click', async () => {
     if (!r.valid) throw new Error(`The new contract didn't validate: ${r.error}`)
     secrets.contractId = r.contractId
     const file = `${(r.name || name).replace(/[^A-Za-z0-9_-]/g, '_') || 'contract'}.rgb`
+    const S = rgb.assetSummary(r)
+    const summary = [S.name, S.ticker && `(${S.ticker})`, S.issued && `· ${S.amount(S.issued)} issued`].filter(Boolean).join(' ')
     out.replaceChildren(
       card('ok', 'Contract issued', `It validates with the ${line} code${r.issuer ? `, under the trusted issuer "${r.issuer.name}"` : ` (schema ${r.schema})`}. Share the file with anyone who should know the contract.`),
+      summary ? el('p', 'summary', summary) : null,
       el('h2', null, 'Contract ID'), valueBox(r.contractId),
       el('div', 'row', button('Download contract file', () => download(file, bytes, 'application/octet-stream')), button('Copy contract ID', () => copy(r.contractId)), button('Make an invoice for it', () => {
         $('#n-line').value = line; refreshInvoiceForm(); $('#n-contract').value = r.contractId

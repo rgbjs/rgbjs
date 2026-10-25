@@ -60,6 +60,7 @@
   .verdict.ok { border-left-color: var(--ok); } .verdict.bad { border-left-color: var(--bad); } .verdict.warn { border-left-color: var(--warn); }
   .verdict .title { font-size: 1.2rem; font-weight: 700; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
   .verdict .why { color: var(--muted); margin-top: 6px; overflow-wrap: anywhere; }
+  .summary { font-size: 1.05rem; margin: 14px 0 6px; overflow-wrap: anywhere; }
   .pill { display: inline-block; font: 600 12px/1 Inter, sans-serif; padding: 4px 8px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
   .pill.v011 { color: var(--v011); } .pill.v012 { color: var(--v012); } .pill.ok { color: var(--ok); } .pill.bad { color: var(--bad); } .pill.warn { color: var(--warn); }
   table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
@@ -133,7 +134,7 @@ function table (rows) {
   for (const [k, v] of rows) if (v != null && v !== '') t.append(el('tr', {}, el('th', {}, k), el('td', { class: 'mono' }, v)))
   return el('div', { class: 'table-wrap' }, t)
 }
-function stateTables (state) {
+function stateTables (state, S) {
   const out = []
   const g = Object.entries(state?.global ?? {}).filter(([, v]) => v.length)
   if (g.length) out.push(el('h2', {}, 'Global state'), table(g.map(([k, v]) => [k, v.join(', ')])))
@@ -143,7 +144,8 @@ function stateTables (state) {
     if (!cells.length) continue
     const t = el('table', {}, el('tr', {}, el('th', {}, 'Seal'), el('th', {}, 'Value'), el('th', {}, 'Status')))
     for (const c of cells) {
-      t.append(el('tr', {}, el('td', { class: 'mono' }, c.seal ?? c.outpoint), el('td', { class: 'mono' }, c.value),
+      const shown = S ? S.amount(c.value) : c.value
+      t.append(el('tr', {}, el('td', { class: 'mono' }, c.seal ?? c.outpoint), el('td', { class: 'mono', title: `${c.value} in the smallest unit` }, shown),
         el('td', {}, c.spent ? pill('warn', 'spent') : c.witness ? pill('ok', 'from witness') : pill('ok', 'unspent'))))
     }
     out.push(el('h2', {}, `Owned: ${name}`), el('div', { class: 'table-wrap' }, t))
@@ -191,7 +193,7 @@ function readSecret () {
 }
 const hexBytes = h => Uint8Array.from((h.match(/../g) || []), b => parseInt(b, 16))
 
-function paidVerdict (r, line) {
+function paidVerdict (r, line, S) {
   const rec = r.receive
   if (!r.valid) return null
   if (!rec.addressedToYou) {
@@ -199,7 +201,7 @@ function paidVerdict (r, line) {
       ? 'This transfer isn\'t addressed to the seal in your secret. Check that you dropped the right transfer and pasted the secret for this invoice.'
       : 'Nothing in this consignment is locked to the auth token in your secret. Check the transfer and the secret.', line)
   }
-  const what = rec.received.map(x => `${x.value} ${x.name}`).join(', ')
+  const what = rec.received.map(x => /^\d+$/.test(x.value) ? S.amount(x.value) : `${x.value} ${x.name}`).join(', ')
   if (r.issuer && !r.issuer.trusted) return verdict('warn', `Paid to you, from an unknown issuer: ${what}`, 'The amounts are valid, but rgbjs doesn\'t know this issuer, so what they mean (names, decimals) is unverified.', line)
   const w = [...new Set(rec.received.map(x => x.witness).filter(Boolean))]
   return verdict('ok', `Paid to you: ${what}`, `On ${rec.received[0].outpoint}.${w.length ? ` Wait until witness ${w.join(', ')} is confirmed on chain before you treat it as yours.` : ''}`, line)
@@ -224,7 +226,7 @@ function checkBytes (bytes, name) {
       r = line === 'v0.11'
         ? engine.v011.receive(bytes, { outpoint: s.outpoint, blinding: String(s.blinding) })
         : engine.v012.receive(bytes, { outpoint: s.outpoint, noiseSeed: hexBytes(s.noiseSeed), nonce: s.nonce ?? 0 })
-      paid = paidVerdict(r, line)
+      paid = paidVerdict(r, line, engine.assetSummary(r))
     } else {
       if (s && s.line && s.line !== line) paid = verdict('bad', 'Wrong secret for this file', `The secret is for ${s.line}, but this is a ${line} file.`, line)
       r = engine.validateConsignment(bytes)
@@ -250,7 +252,11 @@ function checkBytes (bytes, name) {
     ['Operations after genesis', r.operations],
     ['Witness transactions', (r.witnesses ?? []).map(w => w.txid).join(', ') || 'none (genesis only)']
   ]
-  const nodes = [paid, verdict(kind, `Valid ${what}${untrusted ? ', unknown issuer' : ''}`, why, line), table(rows)]
+  const S = engine.assetSummary(r)
+  const label = [S.name, S.ticker && `(${S.ticker})`].filter(Boolean).join(' ')
+  const facts = [S.issued && `${S.amount(S.issued)} issued`, S.decimals != null && S.issued != null && `${S.decimals} decimal place${S.decimals === 1 ? '' : 's'}`].filter(Boolean).join(' · ')
+  const summary = label || facts ? el('p', { class: 'summary' }, el('strong', {}, label || 'Asset'), facts ? ` · ${facts}` : '') : null
+  const nodes = [paid, verdict(kind, `Valid ${what}${untrusted ? ', unknown issuer' : ''}`, why, line), summary, table(rows)]
   if (r.terminals?.length) {
     nodes.push(el('h2', {}, 'Addressed to'), el('p', { class: 'lede' }, 'The blinded seals this transfer is for. If you are the recipient, check that yours is here.'),
       table(r.terminals.flatMap(t => t.seals.map(s => ['Seal', s]))))
@@ -258,7 +264,7 @@ function checkBytes (bytes, name) {
   if (r.witnesses?.length) {
     nodes.push(el('h2', {}, 'Before you rely on it'), el('p', {}, 'Look up each witness transaction on chain and wait for confirmations. rgbjs checks that it closes the right seals, not that it was mined.'))
   }
-  nodes.push(...stateTables(r.state), raw(r))
+  nodes.push(...stateTables(r.state, S), raw(r))
   show(...nodes)
 }
 
