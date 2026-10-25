@@ -240,12 +240,13 @@ function chainPanel (r, paid) {
       if (pick.value === 'blake' && c.results.every(x => x.state === 'mined')) {
         out.replaceChildren(el('p', { class: 'lede' }, 'Checking the headers in this tab…'))
         const spv = await import('https://bitcoin-blake.github.io/bunting/lib/spv.js')
-        const v = await Promise.all(txids.map(t => spv.verifyMined(t, c.tip)))
-        rows = v.map(x => [x.txid, `mined in block ${x.height}, ${x.confirmations}${x.more ? '+' : ''} confirmation${x.confirmations === 1 && !x.more ? '' : 's'}, checked in this tab`])
         const signed = await spv.signedTip().catch(() => null)
-        const agree = await spv.agreesWithSignedTip(signed)
-        checkedBy = `Merkle proofs, BLAKE2b proof of work and header links from block to tip were checked in this tab; ${c.server} only supplied the data.` +
-          (agree === true ? ` Its chain matches the tip signed on Nostr at block ${signed.height}.` : agree === false ? ` Warning: its chain disagrees with the tip signed on Nostr at block ${signed.height}.` : ' No signed tip arrived from Nostr to compare with.')
+        const v = await Promise.all(txids.map(t => spv.verifyMined(t, c.tip, signed)))
+        rows = v.map(x => [x.txid, `mined in block ${x.height}, ${x.confirmations}${x.more ? '+' : ''} confirmation${x.confirmations === 1 && !x.more ? '' : 's'}, checked in this tab` +
+          (x.anchored === true ? ', on the chain signed on Nostr' : x.anchored === false ? ', NOT on the chain signed on Nostr' : '')])
+        const off = v.some(x => x.anchored === false)
+        checkedBy = `Merkle proofs, BLAKE2b proof of work, difficulty and header links from each block up were checked in this tab; ${c.server} only supplied the data.` +
+          (signed ? (off ? ` Warning: at least one witness isn't on the chain whose tip is signed on Nostr (block ${signed.height}).` : v.every(x => x.anchored) ? ` Every witness is on the chain whose tip is signed on Nostr (block ${signed.height}).` : '') : ' No signed tip arrived from Nostr to compare with.')
       }
       const min = Math.min(...c.results.map(x => x.confirmations))
       const all = c.results.every(x => x.state === 'mined')
