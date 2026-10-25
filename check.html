@@ -231,18 +231,33 @@ function chainPanel (r, paid) {
     out.replaceChildren(el('p', { class: 'lede' }, `Asking ${server}…`))
     try {
       const c = await engine.checkWitnesses(txids, { server })
-      const rows = c.results.map(x => [x.txid, x.state === 'mined' ? `mined in block ${x.height}, ${x.confirmations} confirmation${x.confirmations === 1 ? '' : 's'}` : x.state === 'mempool' ? 'broadcast, not mined yet' : 'not found on this server: not broadcast yet, or another network'])
+      let rows = c.results.map(x => [x.txid, x.state === 'mined' ? `mined in block ${x.height}, ${x.confirmations} confirmation${x.confirmations === 1 ? '' : 's'}` : x.state === 'mempool' ? 'broadcast, not mined yet' : 'not found on this server: not broadcast yet, or another network'])
+      let checkedBy = `Checked on ${c.server} at chain height ${c.tip}.`
+      // On the BLAKE2b testnet4, don't take the explorer's word: check each
+      // merkle proof, header proof of work and header link here, with
+      // Bunting's checker (bitcoin-blake/bunting lib/spv.js), and compare the
+      // chain with the tip its publisher signs on Nostr.
+      if (pick.value === 'blake' && c.results.every(x => x.state === 'mined')) {
+        out.replaceChildren(el('p', { class: 'lede' }, 'Checking the headers in this tab…'))
+        const spv = await import('https://bitcoin-blake.github.io/bunting/lib/spv.js')
+        const v = await Promise.all(txids.map(t => spv.verifyMined(t, c.tip)))
+        rows = v.map(x => [x.txid, `mined in block ${x.height}, ${x.confirmations}${x.more ? '+' : ''} confirmation${x.confirmations === 1 && !x.more ? '' : 's'}, checked in this tab`])
+        const signed = await spv.signedTip().catch(() => null)
+        const agree = await spv.agreesWithSignedTip(signed)
+        checkedBy = `Merkle proofs, BLAKE2b proof of work and header links from block to tip were checked in this tab; ${c.server} only supplied the data.` +
+          (agree === true ? ` Its chain matches the tip signed on Nostr at block ${signed.height}.` : agree === false ? ` Warning: its chain disagrees with the tip signed on Nostr at block ${signed.height}.` : ' No signed tip arrived from Nostr to compare with.')
+      }
       const min = Math.min(...c.results.map(x => x.confirmations))
       const all = c.results.every(x => x.state === 'mined')
       const head = all
         ? verdict(min >= 6 ? 'ok' : 'warn', `On chain: ${min} confirmation${min === 1 ? '' : 's'}`, min >= 6 ? 'Every witness is mined and has at least 6 confirmations.' : 'Every witness is mined. Many wallets wait for 6 confirmations before treating a payment as final.')
         : c.results.some(x => x.state === 'not-found')
-          ? verdict('bad', 'Not on chain', 'This server doesn\'t know at least one witness. It may not be broadcast yet, or be on another network: check the server matches the network.')
+          ? verdict('bad', 'Not on chain', 'This server doesn\'t know at least one witness. It may not be broadcast yet, or be on another network: check the server matches the network. A testnet4 file may be on the BLAKE2b testnet4 (txbt4) instead.')
           : verdict('warn', 'Not confirmed yet', 'At least one witness is broadcast but not mined. Until it is, the transfer can still fail.')
-      out.replaceChildren(head, table(rows), el('p', { class: 'lede' }, `Checked on ${c.server} at chain height ${c.tip}.`))
+      out.replaceChildren(head, table(rows), el('p', { class: 'lede' }, checkedBy))
       if (paid && all) paid.querySelector('.why')?.append(` On chain: ${min} confirmation${min === 1 ? '' : 's'}.`)
     } catch (e) {
-      out.replaceChildren(verdict('bad', 'Couldn\'t check on chain', `${e.message}. Check the server URL and your connection.`))
+      out.replaceChildren(verdict('bad', 'Couldn\'t check on chain', `${e.message}. Check the server URL and your connection; if the explorer answered, its answer failed a check.`))
     }
   })
   return el('div', { class: 'chain' }, note, el('div', { class: 'row' }, pick, custom, go), out)
