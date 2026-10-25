@@ -24,7 +24,7 @@ rgbjs doesn't reimplement either protocol. It wraps the reference code, so it ac
 | Parse an invoice | yes | yes |
 | Parse a contract ID | yes | yes |
 | Tell which line a string or file is | yes | yes |
-| Validate a consignment offline | yes (contracts; transfers untested, see below) | yes (contracts and transfers) |
+| Validate a consignment offline | yes (contracts and transfers) | yes (contracts and transfers) |
 | Read contract state from a consignment | not yet | yes |
 
 ## Use
@@ -46,6 +46,8 @@ const result = validateConsignment(new Uint8Array(bytes))  // a .rgb file from e
 result.valid       // true
 result.contractId  // 'rgb:...' or 'contract:...'
 result.witnesses   // the witness transactions it relies on
+// v0.11 transfers: result.terminals lists the blinded seals the transfer is for;
+//                  as the recipient, check that yours is there
 // v0.11: result.schema       'NIA', 'CFA', 'UDA', 'IFA' or 'PFA'
 // v0.12: result.issuer       { id, name, developer, trusted, ... }
 //        result.state        { global: { ticker: ['"DEMO"'], ... }, owned: { balance: [{ outpoint, value }] } }
@@ -73,7 +75,7 @@ Both lines run the reference validator. **Witness transactions aren't looked up 
 - v0.12 invoices print as `contract:tb@contract:<id>/...` instead of `contract:tb@<id>/...` ([AluVM/sonic#27](https://github.com/AluVM/sonic/issues/27)). The cause is that `CallScope`'s `Display` doesn't pass the `{:-}` flag on to `ContractId`. Both forms parse to the same invoice.
 - The 0.11.2 consignment format (rgb-api 0.11.2-rc.1) can't be read. 0.11.1 is pinned until 0.11.2 is final.
 - `wasm/v011` is about 4.9 MB (2.8 MB gzipped). Most of that is two copies of secp256k1 pulled in by upstream dependencies.
-- No v0.11 transfer consignment in the test vectors yet: `rgb transfer` needs an indexer. The v0.12 transfer vector comes from `rust/gen-v012`, which drives `rgb-runtime` with a made-up funding transaction instead of an indexer. A v0.11 equivalent is next.
+- The transfer vectors come from `rust/gen-v011` and `rust/gen-v012`, which drive `rgb-api` 0.11.1 and `rgb-runtime` 0.12.0-rc.3 with a made-up funding transaction instead of an indexer. The pinned `rgb-wallet` accepts the v0.12 one. The pinned `rgb-cmd` 0.11.1 can't check the v0.11 one offline, because its `validate` and `accept` look witnesses up on chain.
 
 ## Tests
 
@@ -85,7 +87,7 @@ The tests run against vectors in `test/vectors/`:
 
 - **Upstream invoice tests.** `scripts/extract-vectors.py` extracts every case from the invoice tests in `rgb-invoicing` 0.11.1 and `sonic-callreq` 0.12.0, so rgbjs must agree with the upstream test suites.
 - **CLI invoices.** Real invoices printed by `rgb-cmd` 0.11.1 and `rgb-wallet` 0.12.0-rc.3, with the inputs that produced them.
-- **A v0.12 transfer.** Made offline by `rust/gen-v012` and accepted by the pinned `rgb-wallet`.
+- **A transfer for each line.** Made offline by `rust/gen-v011` and `rust/gen-v012`. The pinned `rgb-wallet` accepts the v0.12 one.
 - **Contract consignments from both CLIs.** Exported by `rgb-cmd` 0.11.1 and `rgb-wallet` 0.12.0-rc.3. Each is checked as valid. Every single-byte corruption of each is checked too: it must be rejected, or come out as a different contract, an untrusted schema or issuer, or a different state.
 
 ## Build

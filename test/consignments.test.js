@@ -17,6 +17,38 @@ test('v0.11 contract consignment from rgb-cmd 0.11.1 is valid', () => {
   assert.equal(r.schemaId, 'rgb:sch:RWhwUfTMpuP2Zfx1~j4nswCANGeJrYOqDcKelaMV4zU#remote-digital-pegasus')
   assert.equal(r.network, 'regtest')
   assert.deepEqual(r.witnesses, [])
+  assert.deepEqual(r.terminals, [])
+})
+
+const transfer011 = file('./vectors/v011/transfer-demo.transfer.rgb')
+
+test('v0.11 transfer consignment (made by rust/gen-v011) is valid', () => {
+  const r = validateConsignment(transfer011)
+  assert.equal(r.valid, true, r.error)
+  assert.equal(r.kind, 'transfer')
+  assert.equal(r.contractId, 'rgb:epeKJw9q-4ciD_0S-NChLqoR-5INEwmm-lDL1OEH-ujhEX6Y')
+  assert.equal(r.schema, 'NIA')
+  assert.deepEqual(r.witnesses, [{ txid: '2c54de909cbaf40fc2dedeaef1ae310442cdad45cc094f78293f63d7a94befa5', included: true }])
+  // The invoice was rgb:epeKJw9q-…/~/BF/bcrt:utxob:dTwHqt40-…: Bob's blinded seal is the terminal.
+  assert.deepEqual(r.terminals.flatMap(t => t.seals), ['utxob:dTwHqt40-IEPM8Yu-nFIXTvY-va2Nh7Y-xXpTu2P-F5DqjgD-0Hh4B'])
+})
+
+test('v0.11 transfer: no single-byte corruption passes as the same valid transfer', () => {
+  const base = validateConsignment(transfer011)
+  // A flip in the terminals leaves a valid consignment that no longer names
+  // the recipient's seal; that must show in `terminals`.
+  const same = JSON.stringify([base.witnesses, base.terminals])
+  let checked = 0
+  for (let i = 7; i < transfer011.length; i++) {
+    const bad = transfer011.slice()
+    bad[i] ^= 0x01
+    let r
+    try { r = validateConsignment(bad) } catch { continue }
+    checked++
+    assert.ok(!r.valid || r.contractId !== base.contractId || JSON.stringify([r.witnesses, r.terminals]) !== same,
+      `byte ${i} flipped but still valid as the same transfer`)
+  }
+  assert.ok(checked > 0)
 })
 
 test('knownSchemas lists the five rgb-schemas 0.11.1 schemas', () => {

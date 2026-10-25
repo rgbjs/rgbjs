@@ -1,0 +1,16 @@
+[package]
+name = "gen-v011"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Makes v0.11 transfer test vectors offline with rgb-api 0.11.1 and a made-up funding transaction"
+license = "MIT"
+
+[dependencies]
+amplify = "4"
+bp-std = "=0.11.1-alpha.2"
+bp-wallet = "=0.11.1-alpha.2"
+rgb-api = { version = "=0.11.1", features = ["bp"] }
+rgb-ops = "=0.11.1"
+rgb-schemas = "=0.11.1"
+rgb-strict-types = "=1.0.4"

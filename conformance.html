@@ -40,7 +40,7 @@
 <main>
   <h1>rgbjs conformance</h1>
   <p class="muted">Early development, version 0.0.1. Not for real funds.</p>
-  <p>This page loads the rgbjs WebAssembly builds of both RGB lines and runs the test vectors in your browser: the upstream invoice tests from <code>rgb-invoicing</code> 0.11.1 and <code>sonic-callreq</code> 0.12.0, invoices printed by the real CLIs, contract consignments exported by <code>rgb-cmd</code> 0.11.1 and <code>rgb-wallet</code> 0.12.0-rc.3, and a v0.12 transfer that the pinned <code>rgb-wallet</code> accepts. PASS means rgbjs accepted what the reference code accepts and rejected what it rejects. Nothing is fetched from anywhere except this site.</p>
+  <p>This page loads the rgbjs WebAssembly builds of both RGB lines and runs the test vectors in your browser: the upstream invoice tests from <code>rgb-invoicing</code> 0.11.1 and <code>sonic-callreq</code> 0.12.0, invoices printed by the real CLIs, contract consignments exported by <code>rgb-cmd</code> 0.11.1 and <code>rgb-wallet</code> 0.12.0-rc.3, and a transfer for each line made offline by the generators in <code>rust/</code> (the pinned <code>rgb-wallet</code> accepts the v0.12 one). PASS means rgbjs accepted what the reference code accepts and rejected what it rejects. Nothing is fetched from anywhere except this site.</p>
   <p><a href="https://github.com/rgbjs/rgbjs">Source</a> · <a href="https://rgb-docs.github.io/getting-started/two-rgbs">The two RGB lines</a></p>
   <div id="summary" class="summary">Loading the wasm builds…</div>
   <div id="results"></div>
@@ -117,6 +117,7 @@ try {
 
   const consignments = [
     ['test/vectors/v011/demo.contract.rgb', 'rgb:v4Kpkuwn-yjzKgYa-5G5h0cc-lLVyr2B-hdpCTaR-KOe~agc'],
+    ['test/vectors/v011/transfer-demo.transfer.rgb', 'rgb:epeKJw9q-4ciD_0S-NChLqoR-5INEwmm-lDL1OEH-ujhEX6Y'],
     ['test/vectors/v012/DemoToken.rgb', 'contract:nztjpjRX-_NVDDgd-EHENsqL-AKsGsyV-F6LzljB-X4WTv0Y'],
     ['test/vectors/v012/TransferDemo.transfer.rgb', 'contract:KA73QdAH-BFBUNYX-0jsaAXq-_wKsXwD-2VLkZ9Q-1yRYYkc']
   ]
@@ -131,7 +132,8 @@ try {
     })
     check('Consignments', `${path.split('/').pop()}: a sample of single-byte corruptions are all caught`, () => {
       const base = validateConsignment(file)
-      const same = JSON.stringify([base.state, base.witnesses])
+      const fingerprint = r => JSON.stringify([r.state, r.witnesses, r.terminals])
+      const same = fingerprint(base)
       let tried = 0, caught = 0
       for (let i = 11; i < file.length; i += 13) {
         const bad = file.slice()
@@ -139,8 +141,8 @@ try {
         tried++
         let r
         try { r = validateConsignment(bad) } catch { caught++; continue }
-        const passed = r.valid && r.contractId === base.contractId &&
-          (r.line === 'v0.11' || (r.issuer.trusted && JSON.stringify([r.state, r.witnesses]) === same))
+        const passed = r.valid && r.contractId === base.contractId && fingerprint(r) === same &&
+          (r.line === 'v0.11' || r.issuer.trusted)
         if (passed) throw new Error(`byte ${i} flipped but still valid as the same contract`)
         caught++
       }

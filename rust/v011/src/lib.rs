@@ -160,6 +160,7 @@ fn report<const T: bool>(
     schema_name: &str,
     chain_net: ChainNet,
     witnesses: Vec<(Txid, bool)>,
+    terminals: Value,
     res: Result<ValidConsignment<T>, ValidationError>,
 ) -> String {
     let witnesses: Vec<_> = witnesses
@@ -174,6 +175,7 @@ fn report<const T: bool>(
         "schema": schema_name,
         "network": network(chain_net),
         "witnesses": witnesses,
+        "terminals": terminals,
     });
     let mut out = base.as_object().unwrap().clone();
     match res {
@@ -220,10 +222,19 @@ pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
                 .map(|bw| (bw.pub_witness.txid(), bw.pub_witness.tx().is_some()))
                 .collect();
             let (id, schema) = (c.contract_id(), c.schema_id().to_string());
+            // The blinded seals the sender says the transfer is for. They are
+            // hints, not validated: a recipient should find its own here.
+            let terminals: Vec<_> = c
+                .terminals
+                .iter()
+                .map(|(bundle, seals)| {
+                    json!({"bundleId": bundle.to_string(), "seals": seals.iter().map(|s| s.to_string()).collect::<Vec<_>>()})
+                })
+                .collect();
             let (name, trusted_typesystem) = trusted(c.schema_id(), &c.types)?;
             let config = ValidationConfig { chain_net, trusted_typesystem, ..Default::default() };
             let res = c.validate(&OfflineResolver(txes), &config);
-            Ok(report("transfer", id, schema, name, chain_net, witnesses, res))
+            Ok(report("transfer", id, schema, name, chain_net, witnesses, json!(terminals), res))
         }
         b"CON" => {
             let c = Contract::load(bytes).map_err(|e| e.to_string())?;
@@ -232,7 +243,7 @@ pub fn validate_consignment(bytes: &[u8]) -> Result<String, String> {
             let (name, trusted_typesystem) = trusted(c.schema_id(), &c.types)?;
             let config = ValidationConfig { chain_net, trusted_typesystem, ..Default::default() };
             let res = c.validate(&OfflineResolver(HashMap::new()), &config);
-            Ok(report("contract", id, schema, name, chain_net, vec![], res))
+            Ok(report("contract", id, schema, name, chain_net, vec![], json!([]), res))
         }
         other => Err(format!(
             "unsupported v0.11 file type {:?}; expected TFR or CON",
