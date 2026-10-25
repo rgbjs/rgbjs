@@ -26,6 +26,8 @@ rgbjs doesn't reimplement either protocol. It wraps the reference code, so it ac
 | Tell which line a string or file is | yes | yes |
 | Validate a consignment offline | yes (contracts and transfers) | yes (contracts and transfers) |
 | Read contract state from a consignment | yes | yes |
+| Issue a contract (test networks) | yes: NIA, CFA, UDA, IFA, PFA | yes: RGB20 FNA, RGB25 UFA, or any issuer file |
+| Create an invoice (test networks) | yes | yes |
 
 ## Use
 
@@ -53,6 +55,26 @@ result.witnesses   // the witness transactions it relies on
 // v0.12: result.issuer       { id, name, developer, trusted, ... }
 //        result.state        { global: { ticker: ['"DEMO"'], ... }, owned: { balance: [{ outpoint, value }] } }
 ```
+
+Creating, offline and on test networks only:
+
+```js
+import { v011, v012 } from 'rgbjs'
+
+// v0.11: a NIA token on your output. `blinding` is a secret random u64: keep it.
+const file = v011.issueContract({ schema: 'NIA', network: 'regtest', issuer: 'ssi:anonymous',
+  name: 'Demo Token', ticker: 'DEMO', precision: 2, supply: '1000000', terms: '',
+  timestamp: 1761400000, outpoint: 'txid:vout', blinding: '…' })   // RGB\0CON bytes
+
+const { invoice, seal } = v011.createInvoice({ network: 'regtest', outpoint: 'txid:vout',
+  blinding: '…', contractId: 'rgb:…', amount: '100' })
+
+// v0.12: rgb-wallet's issue parameters as JSON, plus a secret noise seed (keep it).
+const bytes = v012.issueContract(params, crypto.getRandomValues(new Uint8Array(32)))
+const inv = v012.createInvoice({ contractId: 'contract:…', value: 100, outpoint: 'txid:vout', noiseSeed, nonce: 0 })
+```
+
+[create.html](https://rgbjs.com/create.html) does this in the browser, and [check.html](https://rgbjs.com/check.html) checks any invoice or file.
 
 Every function throws an `Error` with the upstream message when its input is invalid. To load only one line, import `rgbjs/v011` or `rgbjs/v012`.
 

@@ -6,6 +6,7 @@
 #[macro_use]
 extern crate amplify;
 
+mod create;
 mod mem;
 
 use std::collections::HashMap;
@@ -73,14 +74,14 @@ pub fn parse_contract_id(s: &str) -> Result<String, String> {
     Ok(json!({"line": "v0.12", "contractId": id.to_string(), "hex": hex}).to_string())
 }
 
-const CONSIGN_MAGIC: &[u8; 8] = b"RGBCNSGN";
+pub(crate) const CONSIGN_MAGIC: &[u8; 8] = b"RGBCNSGN";
 const ISSUER_MAGIC: &[u8; 8] = b"ISSUER  ";
 
 /// Issuers whose semantics (APIs, types, libraries) rgbjs trusts out of the box:
 /// RGB20 FNA from RGB-WG/rgb v0.12.0-rc.3 `examples/`, and RGB21 UniqueNFT and
 /// RGB25 UniquelyFungible from pandora-prime/rgb-issuers at 49b4048 (all by
 /// the same developer, dns:pandoraprime.ch; Apache-2.0).
-const KNOWN_ISSUERS: &[&[u8]] = &[
+pub(crate) const KNOWN_ISSUERS: &[&[u8]] = &[
     include_bytes!("../issuers/RGB20-FNA.issuer"),
     include_bytes!("../issuers/RGB21-UniqueNFT-v0-FtU80Q.issuer"),
     include_bytes!("../issuers/RGB25-UniquelyFungible-v0-aiRB3w.issuer"),
@@ -106,7 +107,7 @@ fn known_issuers_full() -> &'static [(hypersonic::IssuerId, String)] {
 }
 
 /// Reads an `.issuer` file. Signatures are not checked.
-fn read_issuer(bytes: &[u8]) -> Result<(hypersonic::Codex, hypersonic::Semantics, bool), String> {
+pub(crate) fn read_issuer(bytes: &[u8]) -> Result<(hypersonic::Codex, hypersonic::Semantics, bool), String> {
     use strict_encoding::{StreamReader, StrictDecode, StrictReader};
 
     if bytes.len() < 10 || &bytes[..8] != ISSUER_MAGIC {

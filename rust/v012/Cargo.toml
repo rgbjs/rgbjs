@@ -12,7 +12,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 rgb-invoice = { version = "=0.12.0-rc.3", features = ["uri"] }
 hypersonic = "0.12.0"
-rgb-std = "=0.12.0-rc.3"
+rgb-std = { version = "=0.12.0-rc.3", features = ["serde"] }
+commit_verify = "0.12.0"
 bp-core = "0.12.0"
 amplify = "4"
 strict_encoding = "2"

@@ -16,6 +16,9 @@ CARDS = {
     'og.png': ('JavaScript for both RGB lines',
                "Each line's own Rust crates, compiled to WebAssembly: invoices, contract IDs "
                'and offline consignment validation for v0.11 and v0.12.'),
+    'og-create.png': ('Create an RGB contract or invoice',
+                      'Issue a token or make an invoice on a test network, for either RGB line, '
+                      'offline in your browser.'),
     'og-check.png': ('Check an RGB invoice or file',
                      'Paste an invoice or drop a consignment: line, validity, contract and state, '
                      'checked offline in your browser.'),

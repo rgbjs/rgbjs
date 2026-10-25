@@ -31,3 +31,21 @@ export const parseIssuer = bytes => call(wasm.parseIssuer, bytes)
 
 /** The issuers whose semantics `validateConsignment` trusts out of the box. */
 export const knownIssuers = () => call(wasm.knownIssuers)
+
+/**
+ * Issues a contract on a test network and returns its `RGBCNSGN` file bytes,
+ * as `rgb backup` writes. `params` has the shape of rgb-wallet's issue
+ * parameter file; `noiseSeed` is secret random bytes (keep them) that blind
+ * the seals; `issuerFile` is an optional `.issuer` for an unknown issuer.
+ */
+export function issueContract (params, noiseSeed, issuerFile) {
+  try { return wasm.issueContract(JSON.stringify(params), noiseSeed, issuerFile) } catch (err) { throw err instanceof Error ? err : new Error(String(err)) }
+}
+
+/**
+ * Creates an invoice paying to an auth token on one of your outputs, derived
+ * from `outpoint`, the secret `noiseSeed` and `nonce` as rgb-wallet does.
+ * Returns { invoice, authToken, seal }.
+ */
+export const createInvoice = ({ contractId, value, outpoint, noiseSeed, nonce = 0 }) =>
+  call(wasm.createInvoice, contractId, String(value), outpoint, noiseSeed, BigInt(nonce))

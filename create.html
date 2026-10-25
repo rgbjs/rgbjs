@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create an RGB contract or invoice</title>
+<meta name="description" content="Issue an RGB contract or make an invoice on a Bitcoin test network, for either RGB line, offline in your browser.">
+<link rel="canonical" href="https://rgbjs.com/create.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="rgbjs">
+<meta property="og:url" content="https://rgbjs.com/create.html">
+<meta property="og:title" content="Create an RGB contract or invoice">
+<meta property="og:description" content="Issue a token or make an invoice on a test network, for either RGB line, offline in your browser.">
+<meta property="og:image" content="https://rgbjs.com/img/og-create.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Create an RGB contract or invoice">
+<meta name="twitter:description" content="Issue a token or make an invoice on a test network, for either RGB line, offline in your browser.">
+<meta name="twitter:image" content="https://rgbjs.com/img/og-create.png">
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a2e; --muted: #5f6475; --line: #e6e8ef; --soft: #f5f6fb;
+    --accent: #5a6fd8; --ok: #2e7d32; --bad: #c62828; --warn: #8a6d00; --v011: #0f8f80; --v012: #b7791f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14151f; --fg: #e8e8f0; --muted: #a0a3b5; --line: #2a2c3c; --soft: #1c1e2b;
+      --accent: #8c9cff; --ok: #66bb6a; --bad: #ef5350; --warn: #e0b84a; --v011: #2dd4bf; --v012: #fbbf24; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  a { color: var(--accent); }
+  header { border-bottom: 1px solid var(--line); }
+  header nav { max-width: 860px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline; }
+  header .brand { font-weight: 800; color: var(--fg); text-decoration: none; margin-right: auto; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 8px 0; }
+  h2 { font-size: 1.2rem; margin: 28px 0 8px; }
+  .lede { color: var(--muted); margin: 0 0 16px; }
+  .note { border-left: 3px solid var(--warn); background: var(--soft); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 14px 0; font-size: 0.95rem; }
+  .tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--line); margin: 20px 0 16px; flex-wrap: wrap; }
+  .tabs button { border: none; background: none; padding: 10px 12px; font: 600 15px Inter, sans-serif; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; }
+  .tabs button[aria-selected=true] { color: var(--fg); border-bottom-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 16px; }
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: var(--muted); }
+  label.wide { grid-column: 1 / -1; }
+  input, select, textarea { font: 15px Inter, sans-serif; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); width: 100%; }
+  input.mono, textarea.mono { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .hint { font-size: 0.82rem; color: var(--muted); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+  button.btn { font: 600 14px Inter, sans-serif; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .out { margin-top: 20px; }
+  .card { border: 1px solid var(--line); border-left-width: 6px; border-radius: 8px; padding: 14px 16px; margin-top: 14px; }
+  .card.ok { border-left-color: var(--ok); } .card.bad { border-left-color: var(--bad); } .card.secret { border-left-color: var(--warn); }
+  .card .title { font-weight: 700; font-size: 1.1rem; }
+  .card .why { color: var(--muted); margin-top: 4px; overflow-wrap: anywhere; }
+  .value { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: 8px 10px; border-radius: 6px; overflow-wrap: anywhere; margin: 6px 0; }
+  .hidden { display: none; }
+  footer { border-top: 1px solid var(--line); margin-top: 48px; padding-top: 14px; font-size: 0.9rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header><nav><a class="brand" href="/">rgbjs</a><a href="create.html">Create</a><a href="check.html">Check</a><a href="conformance.html">Conformance</a><a href="https://github.com/rgbjs/rgbjs">Source</a></nav></header>
+<main>
+  <h1>Create an RGB contract or invoice</h1>
+  <p class="lede">Issue a token or make an invoice, for either RGB line, on a Bitcoin test network. It runs offline in your browser with each line's own code: nothing is sent anywhere, and no keys are involved.</p>
+  <div class="note"><strong>Test networks only. Early development, not for real funds.</strong> Each result depends on a secret generated here. Save it: without it you can't prove or spend what the seal holds.</div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="issue">Issue a contract</button>
+    <button role="tab" aria-selected="false" data-tab="invoice">Make an invoice</button>
+  </div>
+
+  <section id="tab-issue">
+    <div class="grid">
+      <label>RGB line
+        <select id="i-line"><option value="v0.11">v0.11 (rgb-protocol)</option><option value="v0.12">v0.12 (RGB-WG)</option></select>
+      </label>
+      <label>Kind of asset
+        <select id="i-schema"></select>
+      </label>
+      <label id="i-network-wrap">Network
+        <select id="i-network"><option>regtest</option><option>testnet4</option><option>testnet3</option><option>signet</option></select>
+      </label>
+      <label>Name <input id="i-name" value="Demo Token" maxlength="40"></label>
+      <label id="i-ticker-wrap">Ticker <input id="i-ticker" value="DEMO" maxlength="8"></label>
+      <label id="i-precision-wrap">Decimal places <input id="i-precision" type="number" min="0" max="18" value="2"></label>
+      <label id="i-supply-wrap">Supply, in the smallest unit <input id="i-supply" class="mono" value="1000000"></label>
+      <label id="i-max-wrap" class="hidden">Maximum supply (IFA) <input id="i-max" class="mono" value="1500000"></label>
+      <label id="i-token-wrap" class="hidden">Token index (UDA) <input id="i-token" type="number" min="0" value="1"></label>
+      <label id="i-pubkey-wrap" class="hidden wide">Issuer public key (PFA, 33 bytes hex): transfers must be signed by its private key <input id="i-pubkey" class="mono" placeholder="02…"></label>
+      <label class="wide">Owner outpoint: a UTXO you control that will hold the asset <input id="i-outpoint" class="mono" placeholder="txid:vout"></label>
+      <label id="i-inflation-wrap" class="hidden wide">Inflation outpoint (IFA): holds the right to issue more <input id="i-inflation" class="mono" placeholder="txid:vout"></label>
+      <label class="wide">Terms (optional) <input id="i-terms" value=""></label>
+    </div>
+    <div class="row"><button class="btn primary" id="i-go">Issue</button><span class="hint">Nothing is broadcast. The outpoint only has to exist on chain when the asset is used.</span></div>
+    <div class="out" id="i-out" aria-live="polite"></div>
+  </section>
+
+  <section id="tab-invoice" class="hidden">
+    <div class="grid">
+      <label>RGB line
+        <select id="n-line"><option value="v0.11">v0.11 (rgb-protocol)</option><option value="v0.12">v0.12 (RGB-WG)</option></select>
+      </label>
+      <label id="n-network-wrap">Network
+        <select id="n-network"><option>regtest</option><option>testnet4</option><option>testnet3</option><option>signet</option></select>
+      </label>
+      <label class="wide">Contract ID <input id="n-contract" class="mono" placeholder="rgb:… or contract:…"></label>
+      <label>Amount, in the smallest unit <input id="n-amount" class="mono" value="100"></label>
+      <label class="wide">Your outpoint: a UTXO you control, where the asset will arrive <input id="n-outpoint" class="mono" placeholder="txid:vout"></label>
+    </div>
+    <div class="row"><button class="btn primary" id="n-go">Make invoice</button></div>
+    <div class="out" id="n-out" aria-live="polite"></div>
+  </section>
+
+  <footer>Made with <a href="https://github.com/rgbjs/rgbjs">rgbjs</a>: each RGB line's own Rust code compiled to WebAssembly, v0.11 (rgb-protocol 0.11.1) and v0.12 (RGB-WG 0.12.0-rc.3). <a href="check.html">Check</a> any file you make here.</footer>
+</main>
+<script type="module">
+const $ = s => document.querySelector(s)
+let rgb = null
+const ready = import('./src/index.js').then(m => { rgb = m })
+
+// Untrusted values are only ever set as text.
+function el (tag, cls, ...kids) {
+  const e = document.createElement(tag)
+  if (cls) e.className = cls
+  for (const k of kids.flat()) if (k != null) e.append(k instanceof Node ? k : String(k))
+  return e
+}
+const card = (kind, title, why) => el('div', `card ${kind}`, el('div', 'title', title), why ? el('div', 'why', why) : null)
+const valueBox = text => el('div', 'value', text)
+function button (label, onclick) { const b = el('button', 'btn', label); b.type = 'button'; b.addEventListener('click', onclick); return b }
+function download (name, data, type) {
+  const url = URL.createObjectURL(new Blob([data], { type }))
+  const a = Object.assign(document.createElement('a'), { href: url, download: name })
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+const copy = text => navigator.clipboard?.writeText(text)
+const randomU64 = () => { const b = crypto.getRandomValues(new BigUint64Array(1)); return b[0].toString() }
+const randomSeed = () => crypto.getRandomValues(new Uint8Array(32))
+const hex = bytes => [...bytes].map(b => b.toString(16).padStart(2, '0')).join('')
+const OUTPOINT = /^[0-9a-f]{64}:\d+$/i
+const PRECISION = ['indivisible', 'deci', 'centi', 'milli', 'deciMilli', 'centiMilli', 'micro', 'deciMicro', 'centiMicro', 'nano', 'deciNano', 'centiNano', 'pico', 'deciPico', 'centiPico', 'femto', 'deciFemto', 'centiFemto', 'atto']
+const SCHEMAS = {
+  'v0.11': [['NIA', 'NIA: fungible token, fixed supply'], ['CFA', 'CFA: collectible fungible asset'], ['UDA', 'UDA: one unique token (NFT)'], ['IFA', 'IFA: fungible, can be inflated'], ['PFA', 'PFA: fungible, transfers need the issuer\'s signature']],
+  'v0.12': [['FNA', 'RGB20 FNA: fungible token, fixed supply'], ['UFA', 'RGB25 UFA: uniquely fungible asset']]
+}
+const ISSUERS = {
+  FNA: { codexId: '7C15w3W1-L0T~zXw-Aeh5~kV-Zquz729-HXQFKQW-_5lX9O8', version: 0, checksum: 'AYkSrg' },
+  UFA: { codexId: 'mqmGvodN-WxpxyRb-RsGHiTQ-jDoRvMy-ClhrQGx-FMa5Cpw', version: 0, checksum: 'aiRB3w' }
+}
+
+// Tabs
+for (const t of document.querySelectorAll('.tabs button')) {
+  t.addEventListener('click', () => {
+    for (const o of document.querySelectorAll('.tabs button')) o.setAttribute('aria-selected', String(o === t))
+    $('#tab-issue').classList.toggle('hidden', t.dataset.tab !== 'issue')
+    $('#tab-invoice').classList.toggle('hidden', t.dataset.tab !== 'invoice')
+  })
+}
+
+// Issue form: show the fields each schema needs
+function refreshIssueForm () {
+  const line = $('#i-line').value
+  const prev = $('#i-schema').value
+  $('#i-schema').replaceChildren(...SCHEMAS[line].map(([v, label]) => Object.assign(document.createElement('option'), { value: v, textContent: label })))
+  if (SCHEMAS[line].some(([v]) => v === prev)) $('#i-schema').value = prev
+  const s = $('#i-schema').value
+  const show = (id, on) => $(id).classList.toggle('hidden', !on)
+  show('#i-network-wrap', line === 'v0.11')
+  show('#i-ticker-wrap', !['CFA', 'UFA'].includes(s))
+  show('#i-supply-wrap', s !== 'UDA')
+  show('#i-precision-wrap', s !== 'UDA')
+  show('#i-max-wrap', s === 'IFA')
+  show('#i-inflation-wrap', s === 'IFA')
+  show('#i-token-wrap', s === 'UDA')
+  show('#i-pubkey-wrap', s === 'PFA')
+}
+$('#i-line').addEventListener('change', refreshIssueForm)
+$('#i-schema').addEventListener('change', refreshIssueForm)
+refreshIssueForm()
+
+function refreshInvoiceForm () { $('#n-network-wrap').classList.toggle('hidden', $('#n-line').value !== 'v0.11') }
+$('#n-line').addEventListener('change', refreshInvoiceForm)
+refreshInvoiceForm()
+
+function fail (out, err) { out.replaceChildren(card('bad', 'Not created', err.message ?? String(err))) }
+
+$('#i-go').addEventListener('click', async () => {
+  const out = $('#i-out')
+  await ready
+  try {
+    const line = $('#i-line').value
+    const schema = $('#i-schema').value
+    const outpoint = $('#i-outpoint').value.trim()
+    if (!OUTPOINT.test(outpoint)) throw new Error('The owner outpoint must be txid:vout, the 64-hex-digit transaction ID and output number of a UTXO you control.')
+    const name = $('#i-name').value.trim()
+    const ticker = $('#i-ticker').value.trim()
+    const precision = Number($('#i-precision').value)
+    const supply = $('#i-supply').value.trim()
+    let bytes, secrets
+    if (line === 'v0.11') {
+      const blinding = randomU64()
+      const params = { schema, network: $('#i-network').value, issuer: 'ssi:anonymous', name, ticker, precision, supply, terms: $('#i-terms').value, timestamp: Math.floor(Date.now() / 1000), outpoint, blinding }
+      secrets = { line, kind: 'contract', outpoint, blinding }
+      if (schema === 'IFA') {
+        const inflation = $('#i-inflation').value.trim()
+        if (!OUTPOINT.test(inflation)) throw new Error('The inflation outpoint must be txid:vout.')
+        Object.assign(params, { maxSupply: $('#i-max').value.trim(), inflationOutpoint: inflation, inflationBlinding: randomU64() })
+        Object.assign(secrets, { inflationOutpoint: inflation, inflationBlinding: params.inflationBlinding })
+      }
+      if (schema === 'PFA') params.pubkey = $('#i-pubkey').value.trim()
+      if (schema === 'UDA') Object.assign(params, { tokenIndex: Number($('#i-token').value), precision: 0 })
+      bytes = rgb.v011.issueContract(params)
+    } else {
+      const seed = randomSeed()
+      const global = schema === 'FNA'
+        ? [{ name: 'ticker', verified: ticker }, { name: 'name', verified: name }, { name: 'precision', verified: PRECISION[precision] }, { name: 'issued', verified: Number(supply) }]
+        : [{ name: 'details', verified: null, unverified: $('#i-terms').value || 'none' }, { name: 'name', verified: name }, { name: 'precision', verified: PRECISION[precision] }, { name: 'issued', verified: Number(supply) }]
+      if (PRECISION[precision] === undefined) throw new Error('Decimal places must be 0 to 18.')
+      if (!/^\d+$/.test(supply) || Number(supply) > Number.MAX_SAFE_INTEGER) throw new Error('The supply must be a whole number up to 9007199254740991 here.')
+      const params = { consensus: 'bitcoin', testnet: true, issuer: ISSUERS[schema], name: name.replace(/[^A-Za-z0-9_]/g, '') || 'Token', method: 'issue', timestamp: new Date().toISOString(), global, owned: [{ name: 'balance', seal: outpoint, data: Number(supply) }] }
+      bytes = rgb.v012.issueContract(params, seed)
+      secrets = { line, kind: 'contract', outpoint, noiseSeed: hex(seed) }
+    }
+    const r = rgb.validateConsignment(bytes)
+    if (!r.valid) throw new Error(`The new contract didn't validate: ${r.error}`)
+    secrets.contractId = r.contractId
+    const file = `${(r.name || name).replace(/[^A-Za-z0-9_-]/g, '_') || 'contract'}.rgb`
+    out.replaceChildren(
+      card('ok', 'Contract issued', `It validates with the ${line} code${r.issuer ? `, under the trusted issuer "${r.issuer.name}"` : ` (schema ${r.schema})`}. Share the file with anyone who should know the contract.`),
+      el('h2', null, 'Contract ID'), valueBox(r.contractId),
+      el('div', 'row', button('Download contract file', () => download(file, bytes, 'application/octet-stream')), button('Copy contract ID', () => copy(r.contractId)), button('Make an invoice for it', () => {
+        $('#n-line').value = line; refreshInvoiceForm(); $('#n-contract').value = r.contractId
+        document.querySelector('.tabs button[data-tab=invoice]').click()
+      })),
+      card('secret', 'Save this secret', 'It blinds the seal that holds the asset. You need it, with the owner outpoint, to prove or spend the asset. It is shown once and kept nowhere else.'),
+      valueBox(JSON.stringify(secrets, null, 2)),
+      el('div', 'row', button('Download secret backup', () => download(`${file}.secret.json`, JSON.stringify(secrets, null, 2), 'application/json')))
+    )
+  } catch (err) { fail(out, err) }
+})
+
+$('#n-go').addEventListener('click', async () => {
+  const out = $('#n-out')
+  await ready
+  try {
+    const line = $('#n-line').value
+    const contractId = $('#n-contract').value.trim()
+    const amount = $('#n-amount').value.trim()
+    const outpoint = $('#n-outpoint').value.trim()
+    if (!OUTPOINT.test(outpoint)) throw new Error('Your outpoint must be txid:vout.')
+    if (!/^\d+$/.test(amount)) throw new Error('The amount must be a whole number in the smallest unit.')
+    if (rgb.detectLine(contractId) !== line) throw new Error(`That isn't a ${line} contract ID (${line === 'v0.11' ? 'rgb:' : 'contract:'}…).`)
+    let created, secrets
+    if (line === 'v0.11') {
+      const blinding = randomU64()
+      created = rgb.v011.createInvoice({ network: $('#n-network').value, outpoint, blinding, contractId, amount })
+      secrets = { line, kind: 'invoice', invoice: created.invoice, outpoint, blinding, secretSeal: created.secretSeal }
+    } else {
+      const seed = randomSeed()
+      created = rgb.v012.createInvoice({ contractId, value: amount, outpoint, noiseSeed: seed, nonce: 0 })
+      secrets = { line, kind: 'invoice', invoice: created.invoice, outpoint, noiseSeed: hex(seed), nonce: 0, authToken: created.authToken }
+    }
+    out.replaceChildren(
+      card('ok', 'Invoice ready', 'Send it to the payer. It names your seal in blinded form, so the payer can\'t see which output it is.'),
+      valueBox(created.invoice),
+      el('div', 'row', button('Copy invoice', () => copy(created.invoice))),
+      card('secret', 'Save this secret', line === 'v0.11'
+        ? 'Your wallet needs the outpoint and blinding to recognise and spend what arrives. It is shown once and kept nowhere else.'
+        : 'Your wallet needs the outpoint, noise seed and nonce to recognise and spend what arrives. It is shown once and kept nowhere else.'),
+      valueBox(JSON.stringify(secrets, null, 2)),
+      el('div', 'row', button('Download secret backup', () => download('invoice.secret.json', JSON.stringify(secrets, null, 2), 'application/json')))
+    )
+  } catch (err) { fail(out, err) }
+})
+</script>
+</body>
+</html>

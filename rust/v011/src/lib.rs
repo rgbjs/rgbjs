@@ -3,6 +3,8 @@
 //! Everything here is offline: no keys, no network. Results are JSON strings,
 //! parsed on the JavaScript side.
 
+mod create;
+
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::OnceLock;

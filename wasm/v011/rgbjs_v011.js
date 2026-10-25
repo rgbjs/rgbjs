@@ -1,4 +1,76 @@
 /**
+ * Creates a v0.11 invoice paying to a blinded seal on one of your outputs.
+ *
+ * `params` is JSON: `network`, `outpoint` (`txid:vout` you control),
+ * `blinding` (a secret random u64), and optionally `contractId`, `amount`
+ * (for fungible assets) or `tokenIndex` (for UDA), `assignmentName`,
+ * `expiry` (Unix seconds) and `endpoints` (transport URLs). Returns JSON with
+ * the `invoice` and the `seal` you must keep to claim what arrives.
+ * @param {string} params
+ * @returns {string}
+ */
+export function createInvoice(params) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(params, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.createInvoice(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+        var ptr2 = r0;
+        var len2 = r1;
+        if (r3) {
+            ptr2 = 0; len2 = 0;
+            throw takeObject(r2);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * Issues a v0.11 contract and returns its `RGB\0CON` consignment file.
+ *
+ * `params` is JSON: `schema` (NIA, CFA, UDA, IFA or PFA), `network`, `issuer`
+ * (an identity string such as `ssi:anonymous`), `name`, `ticker` (not for
+ * CFA), `precision`, `supply` (not for UDA), `terms`, `timestamp` (Unix
+ * seconds), `outpoint` (`txid:vout` that will own the asset) and `blinding`
+ * (a secret random u64). IFA also takes `maxSupply`, `inflationOutpoint`,
+ * `inflationBlinding` and optionally `rejectListUrl`; PFA takes `pubkey`
+ * (33-byte hex); UDA takes `tokenIndex`.
+ * @param {string} params
+ * @returns {Uint8Array}
+ */
+export function issueContract(params) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(params, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.issueContract(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+        if (r3) {
+            throw takeObject(r2);
+        }
+        var v2 = getArrayU8FromWasm0(r0, r1).slice();
+        wasm.__wbindgen_export4(r0, r1 * 1, 1);
+        return v2;
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+/**
  * Lists the schemas `validateConsignment` accepts.
  * @returns {string}
  */
@@ -15,7 +87,7 @@ export function knownSchemas() {
         return getStringFromWasm0(r0, r1);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export2(deferred1_0, deferred1_1, 1);
+        wasm.__wbindgen_export4(deferred1_0, deferred1_1, 1);
     }
 }
 
@@ -29,7 +101,7 @@ export function parseContractId(s) {
     let deferred3_1;
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passStringToWasm0(s, wasm.__wbindgen_export3, wasm.__wbindgen_export4);
+        const ptr0 = passStringToWasm0(s, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
         const len0 = WASM_VECTOR_LEN;
         wasm.parseContractId(retptr, ptr0, len0);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
@@ -47,7 +119,7 @@ export function parseContractId(s) {
         return getStringFromWasm0(ptr2, len2);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export2(deferred3_0, deferred3_1, 1);
+        wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
     }
 }
 
@@ -61,7 +133,7 @@ export function parseInvoice(s) {
     let deferred3_1;
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passStringToWasm0(s, wasm.__wbindgen_export3, wasm.__wbindgen_export4);
+        const ptr0 = passStringToWasm0(s, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
         const len0 = WASM_VECTOR_LEN;
         wasm.parseInvoice(retptr, ptr0, len0);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
@@ -79,7 +151,7 @@ export function parseInvoice(s) {
         return getStringFromWasm0(ptr2, len2);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export2(deferred3_0, deferred3_1, 1);
+        wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
     }
 }
 
@@ -96,7 +168,7 @@ export function validateConsignment(bytes) {
     let deferred3_1;
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export3);
+        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export2);
         const len0 = WASM_VECTOR_LEN;
         wasm.validateConsignment(retptr, ptr0, len0);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
@@ -114,7 +186,7 @@ export function validateConsignment(bytes) {
         return getStringFromWasm0(ptr2, len2);
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_export2(deferred3_0, deferred3_1, 1);
+        wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
     }
 }
 function __wbg_get_imports() {

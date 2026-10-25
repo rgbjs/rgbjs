@@ -21,3 +21,22 @@ export const knownSchemas = () => call(wasm.knownSchemas)
  * up on chain: `valid: true` means valid if the listed witnesses confirm.
  */
 export const validateConsignment = bytes => call(wasm.validateConsignment, bytes)
+
+/**
+ * Issues a contract on a test network and returns its `RGB\0CON` file bytes.
+ * `params`: { schema: 'NIA'|'CFA'|'UDA'|'IFA'|'PFA', network, issuer, name,
+ * ticker, precision, supply, terms, timestamp, outpoint: 'txid:vout',
+ * blinding } plus maxSupply/inflationOutpoint/inflationBlinding (IFA),
+ * pubkey (PFA) or tokenIndex (UDA). Keep `blinding` secret.
+ */
+export function issueContract (params) {
+  try { return wasm.issueContract(JSON.stringify(params)) } catch (err) { throw err instanceof Error ? err : new Error(String(err)) }
+}
+
+/**
+ * Creates an invoice paying to a blinded seal on one of your outputs.
+ * `params`: { network, outpoint: 'txid:vout', blinding, contractId?,
+ * amount? | tokenIndex?, assignmentName?, expiry?, endpoints? }. Returns
+ * { invoice, secretSeal, seal }: keep `seal` to claim what arrives.
+ */
+export const createInvoice = params => call(wasm.createInvoice, JSON.stringify(params))

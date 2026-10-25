@@ -14,6 +14,7 @@ dependencies = [
  "getrandom 0.2.17",
  "getrandom 0.3.4",
  "paste",
+ "serde",
  "strict_encoding",
  "wasm-bindgen",
 ]
@@ -30,6 +31,8 @@ dependencies = [
  "ascii",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
+ "serde",
+ "stringly_conversions",
  "wasm-bindgen",
 ]
 
@@ -51,6 +54,7 @@ version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "afed304556696656d2d71495e1e5f2c4b524a3fb6eb0f2f3778ffc482a40b8a8"
 dependencies = [
+ "serde",
  "wasm-bindgen",
 ]
 
@@ -99,6 +103,9 @@ name = "ascii"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d92bec98840b8f03a5ff5413de5293bfcd8bf96467cf5452609f939ec6f5de16"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "autocfg"
@@ -211,6 +218,7 @@ dependencies = [
  "getrandom 0.2.17",
  "getrandom 0.3.4",
  "secp256k1",
+ "serde",
  "strict_encoding",
  "wasm-bindgen",
 ]
@@ -227,6 +235,7 @@ dependencies = [
  "commit_verify",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
+ "serde",
  "strict_encoding",
  "wasm-bindgen",
 ]
@@ -244,6 +253,7 @@ dependencies = [
  "getrandom 0.2.17",
  "getrandom 0.3.4",
  "secp256k1",
+ "serde",
  "strict_encoding",
  "wasm-bindgen",
 ]
@@ -258,6 +268,7 @@ dependencies = [
  "bech32",
  "bp-consensus",
  "commit_verify",
+ "serde",
  "strict_encoding",
 ]
 
@@ -273,6 +284,7 @@ dependencies = [
  "commit_verify",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
+ "serde",
  "single_use_seals",
  "strict_encoding",
  "wasm-bindgen",
@@ -309,6 +321,7 @@ dependencies = [
  "iana-time-zone",
  "js-sys",
  "num-traits",
+ "serde",
  "wasm-bindgen",
  "windows-link",
 ]
@@ -338,6 +351,7 @@ dependencies = [
  "getrandom 0.3.4",
  "rand 0.9.5",
  "ripemd",
+ "serde",
  "sha2",
  "strict_encoding",
  "strict_types",
@@ -371,6 +385,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a01d95850c592940db9b8194bc39f4bc0e89dee5c4265e4b1807c34a9aba453c"
+dependencies = [
+ "darling_core",
+ "darling_macro",
+]
+
+[[package]]
+name = "darling_core"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "859d65a907b6852c9361e3185c862aae7fafd2887876799fa55f5f99dc40d610"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2",
+ "quote",
+ "strsim",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c972679f83bdf9c42bd905396b6c3588a843a17f0f16dfcfa3e2c5d57441835"
+dependencies = [
+ "darling_core",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -401,6 +450,12 @@ dependencies = [
  "borrow-or-share",
  "ref-cast",
 ]
+
+[[package]]
+name = "fnv"
+version = "1.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
 name = "futures-core"
@@ -505,6 +560,7 @@ dependencies = [
  "getrandom 0.2.17",
  "getrandom 0.3.4",
  "indexmap",
+ "serde",
  "sonic-api",
  "sonic-callreq",
  "strict_encoding",
@@ -538,6 +594,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ident_case"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
+
+[[package]]
 name = "indexmap"
 version = "2.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -545,6 +607,8 @@ checksum = "cc4e190f5d26ca7051642629da2c52fc03bde85a03197c99408dcd291734c855"
 dependencies = [
  "equivalent",
  "hashbrown",
+ "serde",
+ "serde_core",
 ]
 
 [[package]]
@@ -744,6 +808,7 @@ dependencies = [
  "commit_verify",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
+ "serde",
  "single_use_seals",
  "strict_encoding",
  "ultrasonic",
@@ -763,6 +828,7 @@ dependencies = [
  "commit_verify",
  "hypersonic",
  "rgb-core",
+ "serde",
  "sonic-callreq",
  "strict_encoding",
 ]
@@ -785,6 +851,8 @@ dependencies = [
  "indexmap",
  "rgb-core",
  "rgb-invoice",
+ "serde",
+ "serde_with",
  "single_use_seals",
  "strict_encoding",
  "strict_types",
@@ -797,6 +865,7 @@ version = "0.0.1"
 dependencies = [
  "amplify",
  "bp-core",
+ "commit_verify",
  "hypersonic",
  "rgb-invoice",
  "rgb-std",
@@ -824,6 +893,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
 
 [[package]]
+name = "ryu"
+version = "1.0.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
+
+[[package]]
 name = "secp256k1"
 version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -832,6 +907,7 @@ dependencies = [
  "bitcoin_hashes",
  "rand 0.8.8",
  "secp256k1-sys",
+ "serde",
 ]
 
 [[package]]
@@ -887,6 +963,60 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_spanned"
+version = "0.6.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf41e0cfaf7226dca15e8197172c295a782857fcb97fad1808a166870dee75a3"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "serde_str_helpers"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b744a7c94f2f3785496af33a0d93857dfc0c521e25c38e993e9c5bb45f09c841"
+dependencies = [
+ "serde",
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_with"
+version = "1.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "678b5a069e50bf00ecd22d0cd8ddf7c236f68581b03db652061ed5eb13a312ff"
+dependencies = [
+ "serde",
+ "serde_with_macros",
+]
+
+[[package]]
+name = "serde_with_macros"
+version = "1.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e182d6ec6f05393cc0e5ed1bf81ad6db3a8feedf8ee515ecdd369809bcce8082"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "serde_yaml"
+version = "0.9.34+deprecated"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a8b1a1a2ebf674015cc02edccce75287f1a0130d394307b36743c2f5d504b47"
+dependencies = [
+ "indexmap",
+ "itoa",
+ "ryu",
+ "serde",
+ "unsafe-libyaml",
+]
+
+[[package]]
 name = "sha2"
 version = "0.10.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -909,6 +1039,7 @@ version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc1d9d2dc270edf5d0c6a233517809208d83c403e4ef4570585bb9744f9810e3"
 dependencies = [
+ "serde",
  "strict_encoding",
 ]
 
@@ -933,6 +1064,8 @@ dependencies = [
  "getrandom 0.2.17",
  "getrandom 0.3.4",
  "indexmap",
+ "serde",
+ "serde_yaml",
  "sonic-callreq",
  "strict_encoding",
  "strict_types",
@@ -954,6 +1087,7 @@ dependencies = [
  "getrandom 0.3.4",
  "indexmap",
  "percent-encoding",
+ "serde",
  "strict_encoding",
  "strict_types",
  "ultrasonic",
@@ -967,6 +1101,7 @@ dependencies = [
  "amplify",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
+ "serde",
  "strict_encoding_derive",
  "wasm-bindgen",
 ]
@@ -993,11 +1128,31 @@ dependencies = [
  "getrandom 0.2.17",
  "getrandom 0.3.4",
  "indexmap",
+ "serde",
+ "serde_json",
+ "serde_yaml",
  "sha2",
  "strict_encoding",
+ "toml",
  "vesper-lang",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "stringly_conversions"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff63080f492dd4d289ffcaed8d7ece38adfb423db910eb342c0e04d409536a7a"
+dependencies = [
+ "paste",
+ "serde_str_helpers",
+]
+
+[[package]]
+name = "strsim"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "syn"
@@ -1053,6 +1208,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml"
+version = "0.8.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc1beb996b9d83529a9e75c17a1686767d148d70663143c7854d8b4a09ced362"
+dependencies = [
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "toml_edit",
+]
+
+[[package]]
+name = "toml_datetime"
+version = "0.6.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22cddaf88f4fbc13c51aebbf5f8eceb5c7c5a9da2ac40a13519eb5b0a0e8f11c"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.22.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
+dependencies = [
+ "indexmap",
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "toml_write",
+ "winnow",
+]
+
+[[package]]
+name = "toml_write"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
+
+[[package]]
 name = "typenum"
 version = "1.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1069,6 +1265,7 @@ dependencies = [
  "commit_verify",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
+ "serde",
  "strict_encoding",
  "wasm-bindgen",
  "zk-aluvm",
@@ -1079,6 +1276,12 @@ name = "unicode-ident"
 version = "1.0.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563"
+
+[[package]]
+name = "unsafe-libyaml"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
 
 [[package]]
 name = "version_check"
@@ -1216,6 +1419,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "winnow"
+version = "0.7.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df79d97927682d2fd8adb29682d1140b343be4ac0f08fd68b7765d9c059d3945"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "wit-bindgen"
 version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1251,6 +1463,7 @@ dependencies = [
  "amplify",
  "getrandom 0.2.17",
  "getrandom 0.3.4",
+ "serde",
  "strict_encoding",
  "wasm-bindgen",
 ]

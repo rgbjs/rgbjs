@@ -914,10 +914,12 @@ dependencies = [
 name = "rgbjs-v011"
 version = "0.0.1"
 dependencies = [
+ "amplify",
  "rgb-invoicing",
  "rgb-ops",
  "rgb-schemas",
  "rgb-strict-encoding",
+ "rgb-strict-types",
  "secp256k1-sys 0.10.1",
  "secp256k1-sys 0.14.1",
  "serde_json",
