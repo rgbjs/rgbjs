@@ -236,7 +236,9 @@ function chainPanel (r, paid) {
       const all = c.results.every(x => x.state === 'mined')
       const head = all
         ? verdict(min >= 6 ? 'ok' : 'warn', `On chain: ${min} confirmation${min === 1 ? '' : 's'}`, min >= 6 ? 'Every witness is mined and has at least 6 confirmations.' : 'Every witness is mined. Many wallets wait for 6 confirmations before treating a payment as final.')
-        : verdict('warn', 'Not confirmed yet', 'At least one witness isn\'t mined. Until it is, the transfer can still fail.')
+        : c.results.some(x => x.state === 'not-found')
+          ? verdict('bad', 'Not on chain', 'This server doesn\'t know at least one witness. It may not be broadcast yet, or be on another network: check the server matches the network.')
+          : verdict('warn', 'Not confirmed yet', 'At least one witness is broadcast but not mined. Until it is, the transfer can still fail.')
       out.replaceChildren(head, table(rows), el('p', { class: 'lede' }, `Checked on ${c.server} at chain height ${c.tip}.`))
       if (paid && all) paid.querySelector('.why')?.append(` On chain: ${min} confirmation${min === 1 ? '' : 's'}.`)
     } catch (e) {
