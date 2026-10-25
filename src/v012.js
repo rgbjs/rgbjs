@@ -11,3 +11,23 @@ export const parseInvoice = invoice => call(wasm.parseInvoice, invoice)
 
 /** Parses a `contract:` contract ID. */
 export const parseContractId = id => call(wasm.parseContractId, id)
+
+/**
+ * Validates a consignment file (`RGBCNSGN`, from `rgb backup`, `consign` or
+ * `pay`) offline by evaluating every operation into an in-memory contract,
+ * as `rgb accept -u` does. Witnesses are not looked up on chain, and issuer
+ * signatures are not checked (`signed` says whether one is present).
+ *
+ * The contract ID commits to the codex and genesis but not to the semantics
+ * (APIs, types, libraries) that say what the state means; those travel in
+ * the consignment. `issuer.trusted` is true only when they match an issuer
+ * in `knownIssuers()` exactly. For other issuers, compare `issuer.id` with
+ * `parseIssuer(file).id` for an issuer file you trust.
+ */
+export const validateConsignment = bytes => call(wasm.validateConsignment, bytes)
+
+/** Parses an `.issuer` file; its `id` is comparable with `issuer.id` above. */
+export const parseIssuer = bytes => call(wasm.parseIssuer, bytes)
+
+/** The issuers whose semantics `validateConsignment` trusts out of the box. */
+export const knownIssuers = () => call(wasm.knownIssuers)

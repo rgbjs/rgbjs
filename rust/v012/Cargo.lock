@@ -75,6 +75,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "aora"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa0b56f69d2c47f8ee387f40849742d552e8b94596d997c19095809ac5c6b377"
+dependencies = [
+ "amplify",
+ "binfile",
+ "getrandom 0.2.17",
+ "indexmap",
+ "strict_encoding",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -754,13 +768,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "rgb-std"
+version = "0.12.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37923082a6d87af518cad98b370b0fe742127c1781d40dbd3bdd513af55cbd53"
+dependencies = [
+ "amplify",
+ "aora",
+ "bp-core",
+ "bp-invoice",
+ "chrono",
+ "commit_verify",
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
+ "hypersonic",
+ "indexmap",
+ "rgb-core",
+ "rgb-invoice",
+ "single_use_seals",
+ "strict_encoding",
+ "strict_types",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "rgbjs-v012"
 version = "0.0.1"
 dependencies = [
+ "amplify",
+ "bp-core",
  "hypersonic",
  "rgb-invoice",
+ "rgb-std",
  "serde_json",
  "sonic-callreq",
+ "strict_encoding",
  "strict_types",
  "wasm-bindgen",
 ]

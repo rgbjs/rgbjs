@@ -6,12 +6,17 @@ Apache-2.0 licensed, including:
   wasm/v011: rgb-invoicing, rgb-ops, rgb-consensus, rgb-schemas, rgb-aluvm,
              rgb-strict-encoding, rgb-strict-types (0.11.1 / 1.0.x)
              https://github.com/rgb-protocol
-  wasm/v012: rgb-invoice 0.12.0-rc.3, sonic-callreq, hypersonic, ultrasonic,
-             strict_types (RGB-WG / AluVM / LNP-BP)
+  wasm/v012: rgb-std and rgb-invoice 0.12.0-rc.3, sonic-callreq, sonic-api,
+             hypersonic, ultrasonic, bp-core, strict_types
+             (RGB-WG / AluVM / LNP-BP). rust/v012/src/mem.rs is ported from
+             sonic-persist-fs 0.12.0 and rgb-persist-fs 0.12.0-rc.3.
              https://github.com/RGB-WG https://github.com/AluVM
 
 Exact versions and the full dependency list are in rust/v011/Cargo.lock and
 rust/v012/Cargo.lock. Each crate's license applies to its compiled code.
+
+rust/v012/issuers/RGB20-FNA.issuer is copied from RGB-WG/rgb v0.12.0-rc.3
+examples/ (Apache-2.0) and compiled into wasm/v012 as a trusted issuer.
 
 Test vectors in test/vectors/ that come from upstream tests or fixtures say
 where they come from in the README next to them.

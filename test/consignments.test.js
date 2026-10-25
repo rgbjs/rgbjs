@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 
-import { detectLine, v011, validateConsignment } from '../src/index.js'
+import { detectLine, v011, v012, validateConsignment } from '../src/index.js'
 
 const file = path => new Uint8Array(readFileSync(new URL(path, import.meta.url)))
 const contract = file('./vectors/v011/demo.contract.rgb')
@@ -53,6 +53,64 @@ test('non-consignment input throws', () => {
   assert.throws(() => v011.validateConsignment(new TextEncoder().encode('RGB\0KIT....')), /unsupported/)
 })
 
-test('v0.12 consignments are not supported yet', () => {
-  assert.throws(() => validateConsignment(new TextEncoder().encode('RGBCNSGN')), /not supported for v0.12/)
+const token = file('./vectors/v012/DemoToken.rgb')
+
+test('v0.12 contract consignment from rgb-wallet 0.12.0-rc.3 is valid', () => {
+  assert.equal(detectLine(token), 'v0.12')
+  const r = validateConsignment(token)
+  assert.equal(r.valid, true, r.error)
+  assert.equal(r.contractId, 'contract:nztjpjRX-_NVDDgd-EHENsqL-AKsGsyV-F6LzljB-X4WTv0Y')
+  assert.equal(r.name, 'DemoToken')
+  assert.equal(r.network, 'bitcoin')
+  assert.equal(r.testnet, true)
+  assert.deepEqual(r.issuer, {
+    id: '7C15w3W1-L0T~zXw-Aeh5~kV-Zquz729-HXQFKQW-_5lX9O8/0#AYkSrg',
+    codexId: '7C15w3W1-L0T~zXw-Aeh5~kV-Zquz729-HXQFKQW-_5lX9O8#heavy-cactus-quiet',
+    name: 'Fungible Non-inflatable Asset',
+    developer: 'dns:pandoraprime.ch',
+    version: 0,
+    trusted: true
+  })
+  assert.equal(r.signed, false)
+  assert.deepEqual(r.witnesses, [])
+  // DemoToken.yaml: 10000 units of DEMO on one seal in Alice's wallet
+  assert.deepEqual(r.state.global.ticker, ['"DEMO"'])
+  assert.deepEqual(r.state.global.issued, ['10000'])
+  assert.deepEqual(r.state.owned.balance.map(c => [c.outpoint, c.value]),
+    [['b7116550736fbe5d3e234d0141c6bc8d1825f94da78514a3cede5674e9a5eae9:1', '10000']])
+})
+
+test('v0.12: no single-byte corruption passes as the same trusted contract and state', () => {
+  // A flip may land in the semantics, which the contract ID doesn't commit
+  // to (then the issuer must no longer be trusted), or in a revealed seal
+  // definition (then that allocation must drop out of the state).
+  const { contractId, state } = validateConsignment(token)
+  const same = JSON.stringify(state)
+  let checked = 0
+  for (let i = 8; i < token.length; i++) {
+    const bad = token.slice()
+    bad[i] ^= 0x01
+    let r
+    try { r = validateConsignment(bad) } catch { continue }
+    checked++
+    assert.ok(!r.valid || r.contractId !== contractId || !r.issuer.trusted || JSON.stringify(r.state) !== same,
+      `byte ${i} flipped but still valid and trusted as ${contractId} with the same state`)
+  }
+  assert.ok(checked > 0)
+})
+
+test('v0.12 issuer file parses to the ID consignments report', () => {
+  const issuer = v012.parseIssuer(file('../rust/v012/issuers/RGB20-FNA.issuer'))
+  assert.equal(issuer.id, validateConsignment(token).issuer.id)
+  assert.equal(issuer.signed, false)
+  assert.deepEqual(v012.knownIssuers().map(i => i.id), [issuer.id])
+  assert.throws(() => v012.parseIssuer(token), /not an RGB v0.12 issuer/)
+})
+
+test('v0.12 header checks', () => {
+  assert.throws(() => v012.validateConsignment(new TextEncoder().encode('RGBCNSGN')), /not an RGB v0.12/)
+  const future = token.slice()
+  future[9] = 7
+  assert.throws(() => v012.validateConsignment(future), /version 7/)
+  assert.throws(() => v012.validateConsignment(token.subarray(0, 200)))
 })

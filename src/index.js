@@ -40,11 +40,5 @@ export const parseInvoice = invoice => pick(invoice).parseInvoice(invoice.trim()
 /** Parses a contract ID from either line. */
 export const parseContractId = id => pick(id).parseContractId(id.trim())
 
-/**
- * Validates a consignment file offline. v0.11 only for now: v0.12 files throw.
- */
-export function validateConsignment (bytes) {
-  const lib = pick(bytes)
-  if (!lib.validateConsignment) throw new Error(`consignment validation is not supported for ${lib.line} yet`)
-  return lib.validateConsignment(bytes)
-}
+/** Validates a consignment file from either line offline. */
+export const validateConsignment = bytes => pick(bytes).validateConsignment(bytes)

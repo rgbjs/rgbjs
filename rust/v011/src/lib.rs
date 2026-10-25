@@ -5,6 +5,7 @@
 
 use std::collections::HashMap;
 use std::str::FromStr;
+use std::sync::OnceLock;
 
 use rgbinvoice::{Beneficiary, InvoiceState, RgbInvoice, RgbTransport};
 use rgbstd::containers::{
@@ -89,50 +90,52 @@ pub fn parse_contract_id(s: &str) -> Result<String, String> {
 
 /// The standard v0.11 schemas from `rgb-schemas`, whose type systems are
 /// trusted when validating. A consignment for any other schema is rejected.
-fn known_schema(id: SchemaId) -> Option<(&'static str, TypeSystem)> {
-    fn entry<W: IssuerWrapper>(name: &'static str) -> (SchemaId, &'static str, fn() -> TypeSystem) {
-        (W::schema().schema_id(), name, W::types)
+struct KnownSchema {
+    name: &'static str,
+    id: SchemaId,
+    types: TypeSystem,
+    /// `Debug` of each type, names included, for the strict comparison in [`trusted`].
+    full: HashMap<String, String>,
+}
+
+fn known() -> &'static [KnownSchema] {
+    static KNOWN: OnceLock<Vec<KnownSchema>> = OnceLock::new();
+    fn entry<W: IssuerWrapper>(name: &'static str) -> KnownSchema {
+        let types = W::types();
+        let full = types.iter().map(|(id, ty)| (id.to_string(), format!("{ty:?}"))).collect();
+        KnownSchema { name, id: W::schema().schema_id(), types, full }
     }
-    [
-        entry::<NonInflatableAsset>("NIA"),
-        entry::<CollectibleFungibleAsset>("CFA"),
-        entry::<UniqueDigitalAsset>("UDA"),
-        entry::<InflatableFungibleAsset>("IFA"),
-        entry::<PermissionedFungibleAsset>("PFA"),
-    ]
-    .into_iter()
-    .find(|(sid, ..)| *sid == id)
-    .map(|(_, name, types)| (name, types()))
+    KNOWN.get_or_init(|| {
+        vec![
+            entry::<NonInflatableAsset>("NIA"),
+            entry::<CollectibleFungibleAsset>("CFA"),
+            entry::<UniqueDigitalAsset>("UDA"),
+            entry::<InflatableFungibleAsset>("IFA"),
+            entry::<PermissionedFungibleAsset>("PFA"),
+        ]
+    })
 }
 
 /// Lists the schemas `validateConsignment` accepts.
 #[wasm_bindgen(js_name = knownSchemas)]
 pub fn known_schemas() -> String {
-    fn entry<W: IssuerWrapper>(name: &str) -> Value {
-        json!({"name": name, "schemaId": W::schema().schema_id().to_string()})
-    }
-    json!([
-        entry::<NonInflatableAsset>("NIA"),
-        entry::<CollectibleFungibleAsset>("CFA"),
-        entry::<UniqueDigitalAsset>("UDA"),
-        entry::<InflatableFungibleAsset>("IFA"),
-        entry::<PermissionedFungibleAsset>("PFA"),
-    ])
-    .to_string()
+    json!(known().iter().map(|k| json!({"name": k.name, "schemaId": k.id.to_string()})).collect::<Vec<_>>())
+        .to_string()
 }
 
 fn trusted(id: SchemaId, types: &TypeSystem) -> Result<(&'static str, TypeSystem), String> {
-    let (name, trusted) = known_schema(id)
-        .ok_or_else(|| format!("unknown schema {id}; only the standard rgb-schemas 0.11.1 schemas are supported"))?;
+    let k = known().iter().find(|k| k.id == id).ok_or_else(|| {
+        format!("unknown schema {id}; only the standard rgb-schemas 0.11.1 schemas are supported")
+    })?;
     // rgb-consensus compares types with `Ty`'s PartialEq, which ignores field
     // and variant names. Names change how state reads, so require the full
     // definition to match.
     for (sem_id, ty) in types.iter() {
-        if trusted.get(*sem_id).map(|t| format!("{t:?}")) != Some(format!("{ty:?}")) {
-            return Err(format!("type {sem_id} in the consignment differs from the trusted {name} definition"));
+        if k.full.get(&sem_id.to_string()) != Some(&format!("{ty:?}")) {
+            return Err(format!("type {sem_id} in the consignment differs from the trusted {} definition", k.name));
         }
     }
-    Ok((name, trusted))
+    Ok((k.name, k.types.clone()))
 }
 
 /// Resolves witness transactions only from the transactions carried in the
