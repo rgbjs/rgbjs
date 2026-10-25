@@ -191,7 +191,9 @@ function checkBytes (bytes, name) {
   const what = r.kind === 'transfer' || r.operations > 0 ? 'transfer' : 'contract'
   const why = untrusted
     ? 'Valid, but rgbjs doesn\'t know this issuer, so the meaning of its state (names, decimals, types) is unverified.'
-    : `Valid, if its witness transaction${(r.witnesses?.length ?? 0) === 1 ? '' : 's'} confirm${(r.witnesses?.length ?? 0) === 1 ? 's' : ''} on chain.`
+    : !r.witnesses?.length
+      ? 'Valid. It has no transfers yet, so there are no witness transactions to confirm.'
+      : `Valid, if its witness transaction${r.witnesses.length === 1 ? '' : 's'} confirm${r.witnesses.length === 1 ? 's' : ''} on chain.`
   const rows = [
     ['Contract', r.contractId],
     ['Name', r.name],
