@@ -63,7 +63,7 @@ Both lines run the reference validator. **Witness transactions aren't looked up 
 **v0.11** runs `rgb-consensus`, with two limits:
 
 - **Witnesses come from the consignment.** rgbjs uses the transactions carried in it.
-- **Tested schemas:** NIA, CFA, UDA and IFA consignments are in the test vectors (contracts and transfers); PFA is trusted but has no vector yet.
+- **Tested schemas:** all five have transfer vectors: NIA, CFA, UDA, IFA and PFA. PFA has a signed transfer and an unsigned one that must be rejected.
 - **Only the standard schemas are trusted:** NIA, CFA, UDA, IFA and PFA from rgb-schemas 0.11.1 (`v011.knownSchemas()`). Other schemas are rejected. rgbjs is also stricter than rgb-consensus 0.11.1 here: each type in the consignment must match the trusted definition exactly, names included. Upstream compares types with a check that ignores field and variant names.
 
 **v0.12** evaluates every operation into an in-memory contract, as `rgb accept -u` does. The contract ID commits to the codex and genesis, but not to the semantics (APIs, types, libraries) that say what the state means. Those come with the consignment, so check them:

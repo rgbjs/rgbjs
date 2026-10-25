@@ -16,6 +16,10 @@ const v011Cases = [
     // the whole token (fraction 1 of index 2) went to Bob's blinded seal
     assert.deepEqual(s.owned.assetOwner.map(c => [c.value, c.spent]), [['1@2', true]])
   }],
+  ['pfa.transfer.rgb', 'PFA', 'rgb:cw2EyZvk-VojyG1R-_D17TW2-SSzy116-9jaCcot-rO3uMrU', s => {
+    assert.match(s.global.pubkey[0], /^0x0[23][0-9a-f]{64}$/)
+    assert.deepEqual(s.owned.assetOwner.filter(c => !c.spent).map(c => c.value), ['99900'])
+  }],
   ['ifa.transfer.rgb', 'IFA', 'rgb:csj9hHYN-eeOsHBR-HNst0lt-3ww6bzI-THWd_5H-yr743tQ', s => {
     assert.deepEqual(s.global.maxSupply, ['150000'])
     assert.deepEqual(s.owned.inflationAllowance.map(c => [c.value, c.spent]), [['50000', false]])
@@ -33,6 +37,14 @@ for (const [name, schema, id, checkState] of v011Cases) {
     checkState(r.state)
   })
 }
+
+test('v0.11 PFA transfer without the issuer signature is rejected', () => {
+  // The same transfer as pfa.transfer.rgb before rust/gen-v011 signs it: the
+  // PFA script's `vts` finds no signature and fails.
+  const r = v011.validateConsignment(file('./vectors/v011/pfa-unsigned.invalid.rgb'))
+  assert.equal(r.valid, false)
+  assert.match(r.error, /evaluation of AluVM script .* failed with the code Some\(21\)/)
+})
 
 test('v0.12 RGB25 transfer (pandora-prime issuer) is valid and trusted', () => {
   const r = v012.validateConsignment(file('./vectors/v012/UfDemo.transfer.rgb'))
@@ -62,7 +74,7 @@ test('knownIssuers lists RGB20 FNA, RGB21 UniqueNFT and RGB25 UniquelyFungible',
 
 // A sample (every 5th byte) of single-byte corruptions of each new file; the
 // full sweep runs in rgb-conformance's tools/make-vectors.mjs.
-for (const path of ['v011/cfa.transfer.rgb', 'v011/uda.transfer.rgb', 'v011/ifa.transfer.rgb', 'v012/UfDemo.transfer.rgb', 'v012/NftDemo.contract.rgb']) {
+for (const path of ['v011/pfa.transfer.rgb', 'v011/cfa.transfer.rgb', 'v011/uda.transfer.rgb', 'v011/ifa.transfer.rgb', 'v012/UfDemo.transfer.rgb', 'v012/NftDemo.contract.rgb']) {
   test(`${path}: sampled corruptions are rejected or visibly different`, () => {
     const bytes = file(`./vectors/${path}`)
     const base = validateConsignment(bytes)

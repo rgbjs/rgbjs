@@ -1,6 +1,6 @@
 //! Makes a v0.11 transfer consignment without any indexer or network.
 //!
-//!   gen-v011 <out dir> [nia|cfa|uda|ifa]...
+//!   gen-v011 <out dir> [nia|cfa|uda|ifa|pfa]...
 //!
 //! A wpkh wallet from a fixed test seed gets a made-up funding transaction
 //! (never broadcast) through an in-process indexer. A NIA contract is issued
@@ -40,7 +40,9 @@ use amplify::Wrapper;
 use rgbstd::txout::BlindSeal;
 use rgbstd::{Amount, ChainNet, GenesisSeal, GraphSeal};
 use schemata::dumb::NoResolver;
-use schemata::{CollectibleFungibleAsset, InflatableFungibleAsset, NonInflatableAsset, UniqueDigitalAsset};
+use schemata::{
+    CollectibleFungibleAsset, InflatableFungibleAsset, NonInflatableAsset, PermissionedFungibleAsset, UniqueDigitalAsset,
+};
 
 /// An indexer that knows exactly one transaction and can't publish.
 struct Offline(Tx);
@@ -124,7 +126,7 @@ impl Indexer for Offline {
 
 fn main() {
     let mut args = std::env::args().skip(1);
-    let out = PathBuf::from(args.next().expect("usage: gen-v011 <out dir> [nia|cfa|uda|ifa]..."));
+    let out = PathBuf::from(args.next().expect("usage: gen-v011 <out dir> [nia|cfa|uda|ifa|pfa]..."));
     let schemas: Vec<String> = args.collect();
     let schemas = if schemas.is_empty() { vec![s!("nia")] } else { schemas };
     for (k, schema) in schemas.iter().enumerate() {
@@ -245,6 +247,25 @@ fn build(schema: &str, k: u8, out: &std::path::Path) {
                 .unwrap();
             (c, "ifa")
         }
+        "pfa" => {
+            stock.import_kit(PermissionedFungibleAsset::kit()).unwrap();
+            // A fixed test key (sha256 of a label): PFA transfers must be signed by it.
+            let pubkey = rgbstd::bitcoin::CompressedPublicKey::from_slice(&pfa_key().public_key().serialize()).unwrap();
+            let c = stock
+                .contract_builder("ssi:rgbjs-test", PermissionedFungibleAsset::schema().schema_id(), chain)
+                .unwrap()
+                .add_global_state("spec", AssetSpec::new("PDEMO", "Demo Permissioned", Precision::CentiMicro))
+                .unwrap()
+                .add_global_state("terms", terms)
+                .unwrap()
+                .add_global_state("issuedSupply", Amount::from(100_000u64))
+                .unwrap()
+                .add_fungible_state("assetOwner", seal(0), 100_000u64)
+                .unwrap()
+                .add_global_state("pubkey", pubkey)
+                .unwrap();
+            (c, "pfa")
+        }
         other => panic!("unknown schema {other}"),
     };
     let contract = contract.issue_contract_raw(1_761_350_000).expect("issue");
@@ -270,8 +291,34 @@ fn build(schema: &str, k: u8, out: &std::path::Path) {
     println!("{schema}: invoice {invoice}");
 
     let mut wallet = RgbWallet::new(stock, wallet);
-    let (_psbt, _, transfer) = wallet
+    let (_psbt, _, mut transfer) = wallet
         .pay::<bpstd::psbt::PropKey, bpstd::psbt::Output>(&invoice, TransferParams::with(1000, 1000))
         .expect("pay");
+    if schema == "pfa" {
+        // rgb-api doesn't sign PFA transitions. The signature isn't part of the
+        // operation ID (Transition::commit), so sign each one here: an ECDSA
+        // signature over the transition ID, as the PFA script's `vts` checks.
+        // Save the unsigned transfer too, as a vector the validator must reject.
+        transfer.save_file(out.join(format!("{name}-unsigned.transfer.rgb"))).unwrap();
+        let mut bundles = transfer.bundles.clone().release();
+        for wb in &mut bundles {
+            let mut known = wb.bundle.known_transitions.clone().release();
+            for kt in &mut known {
+                let msg = rgbstd::secp256k1::Message::from_digest(kt.opid.to_byte_array());
+                let sig = rgbstd::secp256k1::SECP256K1.sign_ecdsa(msg, &pfa_key()).serialize_compact();
+                kt.transition.signature = Some(rgbstd::Signature::from(amplify::Bytes64::from(sig)));
+            }
+            wb.bundle.known_transitions = Confined::from_checked(known);
+        }
+        transfer.bundles = Confined::from_checked(bundles);
+    }
     transfer.save_file(out.join(format!("{name}.transfer.rgb"))).unwrap();
+}
+
+/// The PFA issuer key for the test vectors: the SHA-256 of a fixed label.
+/// Public by design; it never controls anything real.
+fn pfa_key() -> rgbstd::secp256k1::SecretKey {
+    use rgbstd::bitcoin::hashes::{sha256, Hash};
+    let digest = sha256::Hash::hash(b"rgbjs PFA test issuer key: not a real key");
+    rgbstd::secp256k1::SecretKey::from_byte_array(digest.to_byte_array()).expect("valid key")
 }
