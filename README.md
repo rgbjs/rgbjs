@@ -82,6 +82,8 @@ Both lines run the reference validator. **Witness transactions aren't looked up 
 
 ## Tests
 
+The rules rgbjs is tested against are written up as a specification at [rgb-conformance](https://rgbjs.github.io/rgb-conformance/): 41 rules for both lines as JSON-LD, each with vectors, and a live suite.
+
 ```sh
 npm test
 ```
