@@ -2,7 +2,7 @@
 
 JavaScript for both RGB lines, built from each line's own Rust crates compiled to WebAssembly.
 
-**Early development, version 0.0.1. Not for real funds.** The API will change.
+**Early development, version 0.0.2. Not for real funds.** The API will change.
 
 RGB is now two incompatible protocols:
 

@@ -1,6 +1,6 @@
 {
   "name": "rgbjs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "JavaScript for both RGB lines (v0.11 and v0.12), built from each line's Rust crates compiled to WebAssembly",
   "license": "MIT",
   "author": "Melvin Carvalho",
