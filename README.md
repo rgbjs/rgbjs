@@ -121,6 +121,10 @@ c.results   // [{ txid, state: 'mined' | 'mempool' | 'not-found', height, confir
 
 Every function throws an `Error` when its input is invalid, saying what the input wasn't ("not a valid v0.12 invoice: …") and then the upstream reason. To load only one line, import `rgbjs/v011` or `rgbjs/v012`.
 
+### Loading
+
+rgbjs is plain ES modules that load their WebAssembly with top-level `await` and `new URL('…wasm', import.meta.url)`. It works as is in Node 18+, in a browser from any static host or CDN (checked from jsDelivr), and through Vite, which emits the two `.wasm` files as assets (checked with Vite 8). A bundler needs an ES2022 target for the top-level `await`. Each line's wasm loads only when that line is imported: `rgbjs/v012` alone skips the v0.11 build.
+
 ### API
 
 | Export | From | Takes | Returns |

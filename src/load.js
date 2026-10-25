@@ -1,7 +1,9 @@
 // Instantiates a wasm-bindgen `--target web` module in Node or a browser.
 export async function load (init, url) {
   if (typeof process !== 'undefined' && process.versions?.node) {
-    const { readFile } = await import('node:fs/promises')
+    // A name bundlers don't follow: this branch runs in Node only.
+    const fs = 'node:fs/promises'
+    const { readFile } = await import(/* @vite-ignore */ /* webpackIgnore: true */ fs)
     await init({ module_or_path: await readFile(url) })
   } else {
     await init({ module_or_path: url })
