@@ -9,11 +9,13 @@ RGB is now two incompatible protocols:
 | | v0.11 | v0.12 |
 |---|---|---|
 | Maintained by | RGB Protocol Association (rgb-protocol, RGB-Tools) | RGB-WG / LNP/BP |
-| Crates used here | rgb-invoicing, rgb-ops, rgb-schemas 0.11.1 | rgb-std, rgb-invoice 0.12.0-rc.3 |
+| Crates used here | rgb-invoicing, rgb-ops, rgb-schemas 0.11.1 | rgb-std, rgb-invoice, rgb-runtime 0.12.0-rc.3 |
 | Invoices start with | `rgb:` | `contract:` |
 | Import | `rgbjs/v011` | `rgbjs/v012` |
 
 The [RGB Docs](https://rgb-docs.github.io/getting-started/two-rgbs) explain the split.
+
+Used by [Bunting](https://github.com/bitcoin-blake/bunting), a browser-tab RGB wallet on the Bitcoin BLAKE2b testnet4 ([how RGB runs there](https://rgb-docs.github.io/guides/development/rgb-on-blake/)).
 
 rgbjs doesn't reimplement either protocol. It wraps the reference code, so it accepts and rejects what those crates accept and reject. Everything runs offline: rgbjs holds no keys, and its only network request is the opt-in `checkWitnesses` lookup.
 
@@ -137,7 +139,9 @@ Both lines run the reference validator. **Witness transactions aren't looked up 
 
 - v0.12 invoices print as `contract:tb@contract:<id>/...` instead of `contract:tb@<id>/...` ([AluVM/sonic#27](https://github.com/AluVM/sonic/issues/27)). The cause is that `CallScope`'s `Display` doesn't pass the `{:-}` flag on to `ContractId`. Both forms parse to the same invoice.
 - The 0.11.2 consignment format (rgb-api 0.11.2-rc.1) can't be read. 0.11.1 is pinned until 0.11.2 is final.
-- Size: `wasm/v011` is 2.9 MB (680 KB gzipped) and `wasm/v012` 1.7 MB (420 KB gzipped). secp256k1 is built with `lowmemory` to keep its precomputed tables small, which makes signature checks a little slower. `rgb-consensus` 0.11.1 still pulls in two secp256k1 versions.
+- Size: `wasm/v011` is 3.4 MB (745 KB gzipped) and `wasm/v012` 2.7 MB (680 KB gzipped, of which rgb-runtime for payments is about 570 KB raw). secp256k1 is built with `lowmemory` to keep its precomputed tables small, which makes signature checks a little slower. `rgb-consensus` 0.11.1 still pulls in two secp256k1 versions.
+- rgb-runtime 0.12.0-rc.3 always commits a payment with an `OP_RETURN` output. `payInvoice({ commit: 'tapret' })` runs its payment steps (fulfill, compose, resolve, bundle, fill, complete) itself, with the change output marked as the tapret host instead. The pinned `rgb-wallet` accepts the result but can't make one.
+- When a later payment spends a tapret change coin, the PSBT records that input's plain (untweaked) script, because rgb-runtime's `Owner::utxo` takes the first script the descriptor derives. The transaction is right; sign it with the script and tweak you saved from `p.tapret`, not the PSBT's `witness_utxo`.
 - The transfer vectors come from `rust/gen-v011` and `rust/gen-v012`, which drive `rgb-api` 0.11.1 and `rgb-runtime` 0.12.0-rc.3 with a made-up funding transaction instead of an indexer. The pinned `rgb-wallet` accepts the v0.12 one. The pinned `rgb-cmd` 0.11.1 can't check the v0.11 one offline, because its `validate` and `accept` look witnesses up on chain.
 
 ## Tests
@@ -153,6 +157,8 @@ The tests run against vectors in `test/vectors/`:
 - **Upstream invoice tests.** `scripts/extract-vectors.py` extracts every case from the invoice tests in `rgb-invoicing` 0.11.1 and `sonic-callreq` 0.12.0, so rgbjs must agree with the upstream test suites.
 - **CLI invoices.** Real invoices printed by `rgb-cmd` 0.11.1 and `rgb-wallet` 0.12.0-rc.3, with the inputs that produced them.
 - **A transfer for each line.** Made offline by `rust/gen-v011` and `rust/gen-v012`. The pinned `rgb-wallet` accepts the v0.12 one.
+- **Payments made by rgbjs.** `test/pay.test.js` issues, pays (opret and tapret), pays again from the change and onward from what was received, through a five-payment chain, checking every file validates and pays its payee. `paid-fna` and `paid-tapret` are sample payments; the pinned `rgb-wallet` accepts both.
+- **Payments mined on a test network.** `mined-opret`, `mined-tapret` and `mined-to-bob` are real payments on the Bitcoin BLAKE2b testnet4 (blocks 153,561, 153,562 and 153,567), made with `payInvoice` and signed by [Bunting](https://bitcoin-blake.github.io/bunting/). See `test/vectors/v012/README.md` for their witnesses.
 - **Contract consignments from both CLIs.** Exported by `rgb-cmd` 0.11.1 and `rgb-wallet` 0.12.0-rc.3. Each is checked as valid. Every single-byte corruption of each is checked too: it must be rejected, or come out as a different contract, an untrusted schema or issuer, or a different state.
 
 ## Build
